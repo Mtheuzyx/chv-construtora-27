@@ -28,3 +28,12 @@ export const formatDocument = (value: string): string => {
 export const cleanDocument = (value: string): string => {
   return value.replace(/\D/g, '');
 };
+
+export const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
+};

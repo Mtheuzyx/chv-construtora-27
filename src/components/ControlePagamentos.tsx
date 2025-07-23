@@ -14,6 +14,7 @@ import { Filter, Edit, Trash2 } from 'lucide-react';
 import { ParcelaStatus } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
 import { CalendarFilter } from '@/components/CalendarFilter';
+import { formatCurrency } from '@/utils/formatters';
 
 export function ControlePagamentos() {
   const {
@@ -206,7 +207,7 @@ export function ControlePagamentos() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-primary">
-              R$ {resumoValores.valorTotalPrevisto.toFixed(2)}
+              {formatCurrency(resumoValores.valorTotalPrevisto)}
             </div>
             <div className="text-sm text-muted-foreground">Total Previsto</div>
           </CardContent>
@@ -215,7 +216,7 @@ export function ControlePagamentos() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-green-600">
-              R$ {resumoValores.valorJaPago.toFixed(2)}
+              {formatCurrency(resumoValores.valorJaPago)}
             </div>
             <div className="text-sm text-muted-foreground">Já Pago</div>
           </CardContent>
@@ -224,7 +225,7 @@ export function ControlePagamentos() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-red-600">
-              R$ {resumoValores.valorEmAtraso.toFixed(2)}
+              {formatCurrency(resumoValores.valorEmAtraso)}
             </div>
             <div className="text-sm text-muted-foreground">Em Atraso</div>
           </CardContent>
@@ -233,7 +234,7 @@ export function ControlePagamentos() {
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold text-orange-600">
-              R$ {resumoValores.valorVenceHoje.toFixed(2)}
+              {formatCurrency(resumoValores.valorVenceHoje)}
             </div>
             <div className="text-sm text-muted-foreground">Vence Hoje</div>
           </CardContent>
@@ -316,7 +317,7 @@ export function ControlePagamentos() {
                         {parcela.numeroParcela}/{parcela.totalParcelas}
                       </Badge>
                     </TableCell>
-                    <TableCell>R$ {parcela.valor.toFixed(2)}</TableCell>
+                    <TableCell>{formatCurrency(parcela.valor)}</TableCell>
                     <TableCell>
                       {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
                     </TableCell>
@@ -358,7 +359,7 @@ export function ControlePagamentos() {
 
                               <div>
                                 <Label>Valor</Label>
-                                <Input value={`R$ ${parcela.valor.toFixed(2)}`} disabled className="bg-muted" />
+                                <Input value={formatCurrency(parcela.valor)} disabled className="bg-muted" />
                               </div>
 
                               <div>
