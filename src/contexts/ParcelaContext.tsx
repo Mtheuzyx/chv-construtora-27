@@ -35,12 +35,12 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Status para "Vence hoje" (incluindo um dia antes)
-    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
+    // Status para "Vence hoje" (para boletos que venceram 1 dia antes)
+    if (diasAteVencimento === -1) {
       return 'VENCE_HOJE';
     }
     
-    return hoje > vencimento ? 'VENCIDO' : 'AGUARDANDO';
+    return hoje > vencimento && diasAteVencimento < -1 ? 'VENCIDO' : 'AGUARDANDO';
   }, []);
 
   const loadParcelas = useCallback(async () => {

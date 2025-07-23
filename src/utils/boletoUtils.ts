@@ -18,17 +18,17 @@ export function calculateBoletoStatus(
   // Calcula dias até o vencimento
   const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Verifica se vence hoje ou um dia antes (será exibido como "vence hoje")
-  if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
+  // Verifica se venceu 1 dia antes da data atual (será exibido como "vence hoje")
+  if (diasAteVencimento === -1) {
     return 'PRESTES_A_VENCER'; // Usamos PRESTES_A_VENCER para "vence hoje"
   }
   
-  // Se não tem data de pagamento e já venceu
-  if (vencimento < hoje) {
+  // Se não tem data de pagamento e já venceu (mais de 1 dia)
+  if (vencimento < hoje && diasAteVencimento < -1) {
     return 'VENCIDO';
   }
   
-  if (diasAteVencimento <= 7) {
+  if (diasAteVencimento <= 7 && diasAteVencimento > 0) {
     return 'PRESTES_A_VENCER';
   }
   
@@ -44,12 +44,14 @@ export function getStatusLabel(status: BoletoStatus, dataVencimento?: string): s
     
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Se vence hoje ou um dia antes, mostra "Vence Hoje"
-    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
+    // Se venceu 1 dia antes da data atual, mostra "Vence Hoje"
+    if (diasAteVencimento === -1) {
       return 'Vence Hoje';
     }
     
-    return `Faltam ${diasAteVencimento} dias`;
+    if (diasAteVencimento > 0) {
+      return `Faltam ${diasAteVencimento} dias`;
+    }
   }
   
   const statusLabels: Record<BoletoStatus, string> = {
@@ -73,8 +75,8 @@ export function getStatusColor(status: BoletoStatus, dataVencimento?: string): s
     
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Se vence hoje ou um dia antes, usar cor azul e destaque
-    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
+    // Se venceu 1 dia antes da data atual, usar cor azul e destaque
+    if (diasAteVencimento === -1) {
       return 'text-blue-600 bg-blue-100 font-bold border border-blue-300';
     }
   }
