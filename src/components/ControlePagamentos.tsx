@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -72,6 +73,16 @@ export function ControlePagamentos() {
     fornecedores.forEach(f => map.set(f.id, f.nome));
     return map;
   }, [fornecedores]);
+
+  // Opções para o autocomplete de fornecedores
+  const fornecedorOptions = useMemo<AutocompleteOption[]>(() => [
+    { value: 'TODOS', label: 'Todos os fornecedores' },
+    ...fornecedores.map(fornecedor => ({
+      value: fornecedor.id,
+      label: fornecedor.nome,
+      description: `${fornecedor.cpfCnpj} - ${fornecedor.tipo}`
+    }))
+  ], [fornecedores]);
 
   const getFornecedorNome = useCallback((fornecedorId: string) => {
     return fornecedorMap.get(fornecedorId) || 'Não encontrado';
@@ -258,19 +269,15 @@ export function ControlePagamentos() {
 
             <div>
               <Label>Fornecedor</Label>
-              <Select value={filtros.fornecedor} onValueChange={value => setFiltros(prev => ({ ...prev, fornecedor: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TODOS">Todos</SelectItem>
-                  {fornecedores.map(fornecedor => (
-                    <SelectItem key={fornecedor.id} value={fornecedor.id}>
-                      {fornecedor.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Autocomplete
+                options={fornecedorOptions}
+                value={filtros.fornecedor}
+                onValueChange={value => setFiltros(prev => ({ ...prev, fornecedor: value }))}
+                placeholder="Buscar fornecedor..."
+                searchPlaceholder="Digite o nome do fornecedor..."
+                emptyText="Nenhum fornecedor encontrado"
+                clearable={filtros.fornecedor !== 'TODOS'}
+              />
             </div>
           </div>
 
