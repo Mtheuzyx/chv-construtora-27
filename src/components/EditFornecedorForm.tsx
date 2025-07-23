@@ -27,7 +27,7 @@ export function EditFornecedorForm({ fornecedor, onCancel }: EditFornecedorFormP
     tipo: fornecedor.tipo
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.nome || !formData.cpfCnpj) {
@@ -39,7 +39,7 @@ export function EditFornecedorForm({ fornecedor, onCancel }: EditFornecedorFormP
       return;
     }
 
-    editFornecedor(fornecedor.id, formData);
+    await editFornecedor(fornecedor.id, formData);
     
     toast({
       title: "Sucesso!",

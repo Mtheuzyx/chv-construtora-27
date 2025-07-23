@@ -31,7 +31,7 @@ export function FornecedorForm() {
 
   const filteredFornecedores = searchTerm.length >= 2 ? searchFornecedor(searchTerm) : fornecedores;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.nome || !formData.cpfCnpj) {
@@ -43,7 +43,7 @@ export function FornecedorForm() {
       return;
     }
 
-    addFornecedor(formData);
+    await addFornecedor(formData);
     
     setFormData({
       nome: '',
@@ -60,9 +60,9 @@ export function FornecedorForm() {
     });
   };
 
-  const handleDelete = (fornecedorId: string, nome: string) => {
+  const handleDelete = async (fornecedorId: string, nome: string) => {
     if (window.confirm(`Tem certeza que deseja excluir o fornecedor "${nome}"?`)) {
-      deleteFornecedor(fornecedorId);
+      await deleteFornecedor(fornecedorId);
       toast({
         title: "Fornecedor excluído!",
         description: `${nome} foi removido com sucesso.`,
