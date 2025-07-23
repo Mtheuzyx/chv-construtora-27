@@ -121,7 +121,7 @@ export function Dashboard() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label>Data Início</Label>
               <Input
@@ -143,8 +143,8 @@ export function Dashboard() {
       </Card>
 
       {/* Cards de Estatísticas Principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="hover-scale">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -158,7 +158,7 @@ export function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="hover-scale">
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div>
@@ -202,7 +202,7 @@ export function Dashboard() {
       </div>
 
       {/* Cards de Valores */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -247,7 +247,7 @@ export function Dashboard() {
       </div>
 
       {/* Status das Parcelas */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
