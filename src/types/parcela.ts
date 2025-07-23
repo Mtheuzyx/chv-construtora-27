@@ -23,7 +23,7 @@ export type ParcelaStatus =
 export interface NovoBoletoParcelas {
   fornecedorId: string;
   formaPagamento: string;
-  valorTotal: number;
+  valorParcela: number;  // Mudança: valor por parcela ao invés de valor total
   quantidadeParcelas: number;
   dataVencimentoPrimeira: string;
   observacoes?: string;

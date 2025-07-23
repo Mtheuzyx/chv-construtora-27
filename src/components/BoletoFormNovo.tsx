@@ -26,7 +26,7 @@ export function BoletoFormNovo() {
   
   const [formData, setFormData] = useState({
     formaPagamento: '',
-    valorTotal: '',
+    valorParcela: '',
     quantidadeParcelas: '1',
     dataVencimentoPrimeira: '',
     observacoes: ''
@@ -153,7 +153,7 @@ export function BoletoFormNovo() {
       return;
     }
     
-    if (!formData.formaPagamento || !formData.valorTotal || !formData.dataVencimentoPrimeira) {
+    if (!formData.formaPagamento || !formData.valorParcela || !formData.dataVencimentoPrimeira) {
       toast({
         title: "Campos obrigatórios",
         description: "Todos os campos são obrigatórios",
@@ -165,7 +165,7 @@ export function BoletoFormNovo() {
     criarBoletoComParcelas({
       fornecedorId: selectedFornecedor,
       formaPagamento: formData.formaPagamento,
-      valorTotal: parseFloat(formData.valorTotal),
+      valorParcela: parseFloat(formData.valorParcela),
       quantidadeParcelas: parseInt(formData.quantidadeParcelas),
       dataVencimentoPrimeira: formData.dataVencimentoPrimeira,
       observacoes: formData.observacoes
@@ -178,7 +178,7 @@ export function BoletoFormNovo() {
     setIsInputFocused(false);
     setFormData({
       formaPagamento: '',
-      valorTotal: '',
+      valorParcela: '',
       quantidadeParcelas: '1',
       dataVencimentoPrimeira: '',
       observacoes: ''
@@ -190,8 +190,8 @@ export function BoletoFormNovo() {
     });
   };
 
-  const valorParcela = formData.valorTotal && formData.quantidadeParcelas 
-    ? (parseFloat(formData.valorTotal) / parseInt(formData.quantidadeParcelas)).toFixed(2)
+  const valorTotal = formData.valorParcela && formData.quantidadeParcelas 
+    ? (parseFloat(formData.valorParcela) * parseInt(formData.quantidadeParcelas)).toFixed(2)
     : '0,00';
 
   return (
@@ -309,14 +309,14 @@ export function BoletoFormNovo() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="valorTotal">Valor Total (R$) *</Label>
+              <Label htmlFor="valorParcela">Valor por Parcela (R$) *</Label>
               <Input
-                id="valorTotal"
+                id="valorParcela"
                 type="number"
                 step="0.01"
                 className="h-11"
-                value={formData.valorTotal}
-                onChange={(e) => setFormData(prev => ({ ...prev, valorTotal: e.target.value }))}
+                value={formData.valorParcela}
+                onChange={(e) => setFormData(prev => ({ ...prev, valorParcela: e.target.value }))}
                 placeholder="0,00"
               />
             </div>
@@ -362,10 +362,10 @@ export function BoletoFormNovo() {
           </div>
 
           {/* Resumo das Parcelas */}
-          {formData.valorTotal && formData.quantidadeParcelas && (
+          {formData.valorParcela && formData.quantidadeParcelas && (
             <div className="p-4 bg-accent rounded-md border">
               <div className="text-sm font-medium text-center">
-                Resumo: {formData.quantidadeParcelas}x de R$ {valorParcela}
+                Resumo: {formData.quantidadeParcelas}x de R$ {formData.valorParcela} = Total: R$ {valorTotal}
               </div>
             </div>
           )}

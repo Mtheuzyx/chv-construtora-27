@@ -1,21 +1,26 @@
-
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { Parcela, ParcelaStatus, NovoBoletoParcelas } from '@/types/parcela';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ParcelaContextType {
   parcelas: Parcela[];
-  criarBoletoComParcelas: (boletoParcelas: NovoBoletoParcelas) => void;
-  updateParcelaPagamento: (parcelaId: string, dataPagamento: string) => void;
-  updateParcelaVencimento: (parcelaId: string, novaData: string) => void;
-  updateParcelaStatus: (parcelaId: string, novoStatus: ParcelaStatus) => void;
-  deleteParcela: (parcelaId: string) => void;
+  loading: boolean;
+  criarBoletoComParcelas: (boletoParcelas: NovoBoletoParcelas) => Promise<void>;
+  updateParcelaPagamento: (parcelaId: string, dataPagamento: string) => Promise<void>;
+  updateParcelaVencimento: (parcelaId: string, novaData: string) => Promise<void>;
+  updateParcelaStatus: (parcelaId: string, novoStatus: ParcelaStatus) => Promise<void>;
+  deleteParcela: (parcelaId: string) => Promise<void>;
   getParcelasByFornecedor: (fornecedorId: string) => Parcela[];
+  loadParcelas: () => Promise<void>;
 }
 
 const ParcelaContext = createContext<ParcelaContextType | undefined>(undefined);
 
 export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const [parcelas, setParcelas] = useState<Parcela[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   const calculateParcelaStatus = useCallback((dataVencimento: string, dataPagamento?: string): ParcelaStatus => {
     const hoje = new Date();
@@ -36,79 +41,285 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     return hoje > vencimento ? 'VENCIDO' : 'AGUARDANDO';
   }, []);
 
-  const criarBoletoComParcelas = useCallback((boletoParcelas: NovoBoletoParcelas) => {
-    const boletoId = crypto.randomUUID();
-    const valorParcela = boletoParcelas.valorTotal / boletoParcelas.quantidadeParcelas;
-    const novasParcelas: Parcela[] = [];
+  const loadParcelas = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      // Buscar parcelas e boletos com join
+      const { data: parcelasData, error } = await supabase
+        .from('parcelas')
+        .select(`
+          *,
+          boletos!inner(
+            fornecedor_id,
+            forma_pagamento,
+            observacoes
+          )
+        `)
+        .order('vencimento', { ascending: true });
 
-    for (let i = 1; i <= boletoParcelas.quantidadeParcelas; i++) {
-      const dataVencimento = new Date(boletoParcelas.dataVencimentoPrimeira);
-      dataVencimento.setMonth(dataVencimento.getMonth() + (i - 1));
+      if (error) {
+        console.error('Erro ao carregar parcelas:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao carregar parcelas do banco de dados",
+          variant: "destructive"
+        });
+        return;
+      }
 
-      const parcela: Parcela = {
-        id: crypto.randomUUID(),
-        boletoId,
-        fornecedorId: boletoParcelas.fornecedorId,
-        numeroParcela: i,
-        totalParcelas: boletoParcelas.quantidadeParcelas,
-        valor: valorParcela,
-        dataVencimento: dataVencimento.toISOString().split('T')[0],
-        status: calculateParcelaStatus(dataVencimento.toISOString().split('T')[0]),
-        observacoes: boletoParcelas.observacoes,
+      const parcelasFormatadas: Parcela[] = parcelasData?.map(p => ({
+        id: p.id,
+        boletoId: p.boleto_id,
+        fornecedorId: p.boletos.fornecedor_id,
+        numeroParcela: p.numero_parcela,
+        totalParcelas: 1, // Será calculado posteriormente se necessário
+        valor: Number(p.valor_parcela),
+        dataVencimento: p.vencimento,
+        dataPagamento: p.data_pagamento || undefined,
+        status: calculateParcelaStatus(p.vencimento, p.data_pagamento),
+        observacoes: p.observacoes || p.boletos.observacoes,
         createdAt: new Date().toISOString()
+      })) || [];
+
+      setParcelas(parcelasFormatadas);
+    } catch (error) {
+      console.error('Erro ao carregar parcelas:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao carregar dados",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [calculateParcelaStatus, toast]);
+
+  const criarBoletoComParcelas = useCallback(async (boletoParcelas: NovoBoletoParcelas) => {
+    try {
+      setLoading(true);
+      
+      // Primeiro criar o boleto
+      const valorTotal = boletoParcelas.valorParcela * boletoParcelas.quantidadeParcelas;
+      const { data: boletoData, error: boletoError } = await supabase
+        .from('boletos')
+        .insert({
+          fornecedor_id: boletoParcelas.fornecedorId,
+          forma_pagamento: boletoParcelas.formaPagamento,
+          valor_total: valorTotal,
+          quantidade_parcelas: boletoParcelas.quantidadeParcelas,
+          vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
+          observacoes: boletoParcelas.observacoes
+        })
+        .select()
+        .single();
+
+      if (boletoError) {
+        console.error('Erro ao criar boleto:', boletoError);
+        toast({
+          title: "Erro",
+          description: "Erro ao salvar boleto no banco de dados",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // As parcelas são criadas automaticamente via trigger
+      // Recarregar parcelas para mostrar os novos dados
+      await loadParcelas();
+      
+      toast({
+        title: "Sucesso!",
+        description: `Boleto criado com ${boletoParcelas.quantidadeParcelas} parcela(s)`,
+      });
+    } catch (error) {
+      console.error('Erro ao criar boleto com parcelas:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao criar boleto",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [loadParcelas, toast]);
+
+  const updateParcelaPagamento = useCallback(async (parcelaId: string, dataPagamento: string) => {
+    try {
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ 
+          data_pagamento: dataPagamento,
+          status_pagamento: 'Pago'
+        })
+        .eq('id', parcelaId);
+
+      if (error) {
+        console.error('Erro ao atualizar pagamento:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar data de pagamento",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar estado local
+      setParcelas(prev => prev.map(parcela => {
+        if (parcela.id === parcelaId) {
+          return {
+            ...parcela,
+            dataPagamento,
+            status: calculateParcelaStatus(parcela.dataVencimento, dataPagamento)
+          };
+        }
+        return parcela;
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Data de pagamento atualizada",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar pagamento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar pagamento",
+        variant: "destructive"
+      });
+    }
+  }, [calculateParcelaStatus, toast]);
+
+  const updateParcelaVencimento = useCallback(async (parcelaId: string, novaData: string) => {
+    try {
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ vencimento: novaData })
+        .eq('id', parcelaId);
+
+      if (error) {
+        console.error('Erro ao atualizar vencimento:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar data de vencimento",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar estado local
+      setParcelas(prev => prev.map(parcela => {
+        if (parcela.id === parcelaId) {
+          return {
+            ...parcela,
+            dataVencimento: novaData,
+            status: calculateParcelaStatus(novaData, parcela.dataPagamento)
+          };
+        }
+        return parcela;
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Data de vencimento atualizada",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar vencimento:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar vencimento",
+        variant: "destructive"
+      });
+    }
+  }, [calculateParcelaStatus, toast]);
+
+  const updateParcelaStatus = useCallback(async (parcelaId: string, novoStatus: ParcelaStatus) => {
+    try {
+      const statusMapping = {
+        'AGUARDANDO': 'Pendente',
+        'PAGO': 'Pago',
+        'PAGO_COM_ATRASO': 'Pago',
+        'VENCIDO': 'Vencido',
+        'VENCE_HOJE': 'Pendente'
       };
 
-      novasParcelas.push(parcela);
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ status_pagamento: statusMapping[novoStatus] })
+        .eq('id', parcelaId);
+
+      if (error) {
+        console.error('Erro ao atualizar status:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar status da parcela",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar estado local
+      setParcelas(prev => prev.map(parcela => {
+        if (parcela.id === parcelaId) {
+          return {
+            ...parcela,
+            status: novoStatus
+          };
+        }
+        return parcela;
+      }));
+    } catch (error) {
+      console.error('Erro ao atualizar status:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar status",
+        variant: "destructive"
+      });
     }
+  }, [toast]);
 
-    setParcelas(prev => [...prev, ...novasParcelas]);
-  }, [calculateParcelaStatus]);
+  const deleteParcela = useCallback(async (parcelaId: string) => {
+    try {
+      const { error } = await supabase
+        .from('parcelas')
+        .delete()
+        .eq('id', parcelaId);
 
-  const updateParcelaPagamento = useCallback((parcelaId: string, dataPagamento: string) => {
-    setParcelas(prev => prev.map(parcela => {
-      if (parcela.id === parcelaId) {
-        return {
-          ...parcela,
-          dataPagamento,
-          status: calculateParcelaStatus(parcela.dataVencimento, dataPagamento)
-        };
+      if (error) {
+        console.error('Erro ao deletar parcela:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao deletar parcela",
+          variant: "destructive"
+        });
+        return;
       }
-      return parcela;
-    }));
-  }, [calculateParcelaStatus]);
 
-  const updateParcelaVencimento = useCallback((parcelaId: string, novaData: string) => {
-    setParcelas(prev => prev.map(parcela => {
-      if (parcela.id === parcelaId) {
-        return {
-          ...parcela,
-          dataVencimento: novaData,
-          status: calculateParcelaStatus(novaData, parcela.dataPagamento)
-        };
-      }
-      return parcela;
-    }));
-  }, [calculateParcelaStatus]);
-
-  const updateParcelaStatus = useCallback((parcelaId: string, novoStatus: ParcelaStatus) => {
-    setParcelas(prev => prev.map(parcela => {
-      if (parcela.id === parcelaId) {
-        return {
-          ...parcela,
-          status: novoStatus
-        };
-      }
-      return parcela;
-    }));
-  }, []);
-
-  const deleteParcela = useCallback((parcelaId: string) => {
-    setParcelas(prev => prev.filter(parcela => parcela.id !== parcelaId));
-  }, []);
+      // Atualizar estado local
+      setParcelas(prev => prev.filter(parcela => parcela.id !== parcelaId));
+      
+      toast({
+        title: "Sucesso",
+        description: "Parcela deletada",
+      });
+    } catch (error) {
+      console.error('Erro ao deletar parcela:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao deletar parcela",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
 
   const getParcelasByFornecedor = useCallback((fornecedorId: string): Parcela[] => {
     return parcelas.filter(p => p.fornecedorId === fornecedorId);
   }, [parcelas]);
+
+  // Carregar parcelas ao inicializar
+  useEffect(() => {
+    loadParcelas();
+  }, [loadParcelas]);
 
   // Atualização automática de status baseada na data atual
   const updateAllParcelasStatus = useCallback(() => {
@@ -139,20 +350,24 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
 
   const contextValue = useMemo(() => ({ 
     parcelas, 
+    loading,
     criarBoletoComParcelas, 
     updateParcelaPagamento,
     updateParcelaVencimento,
     updateParcelaStatus,
     deleteParcela,
-    getParcelasByFornecedor
+    getParcelasByFornecedor,
+    loadParcelas
   }), [
     parcelas, 
+    loading,
     criarBoletoComParcelas, 
     updateParcelaPagamento,
     updateParcelaVencimento,
     updateParcelaStatus,
     deleteParcela,
-    getParcelasByFornecedor
+    getParcelasByFornecedor,
+    loadParcelas
   ]);
 
   return (
