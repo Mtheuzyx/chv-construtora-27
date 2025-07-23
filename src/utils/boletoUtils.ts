@@ -5,7 +5,9 @@ export function calculateBoletoStatus(
   dataPagamento?: string
 ): BoletoStatus {
   const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
   const vencimento = new Date(dataVencimento);
+  vencimento.setHours(0, 0, 0, 0);
   
   // Se tem data de pagamento
   if (dataPagamento) {
@@ -13,7 +15,12 @@ export function calculateBoletoStatus(
     return pagamento <= vencimento ? 'PAGO' : 'PAGO_COM_ATRASO';
   }
   
-  // Se não tem data de pagamento
+  // Verifica se vence hoje
+  if (hoje.getTime() === vencimento.getTime()) {
+    return 'PRESTES_A_VENCER'; // Usamos PRESTES_A_VENCER para "vence hoje"
+  }
+  
+  // Se não tem data de pagamento e já venceu
   if (vencimento < hoje) {
     return 'VENCIDO';
   }
@@ -31,7 +38,15 @@ export function calculateBoletoStatus(
 export function getStatusLabel(status: BoletoStatus, dataVencimento?: string): string {
   if (status === 'PRESTES_A_VENCER' && dataVencimento) {
     const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
     const vencimento = new Date(dataVencimento);
+    vencimento.setHours(0, 0, 0, 0);
+    
+    // Se vence hoje
+    if (hoje.getTime() === vencimento.getTime()) {
+      return 'Vence Hoje';
+    }
+    
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     return `Faltam ${diasAteVencimento} dias`;
   }
