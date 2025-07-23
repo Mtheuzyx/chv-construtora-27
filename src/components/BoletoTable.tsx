@@ -140,7 +140,7 @@ export default function BoletoTable() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Badge className={getStatusColor(boleto.status)} variant="secondary">
+                      <Badge className={getStatusColor(boleto.status, boleto.dataVencimento)} variant="secondary">
                         {getStatusLabel(boleto.status, boleto.dataVencimento)}
                       </Badge>
                     </TableCell>

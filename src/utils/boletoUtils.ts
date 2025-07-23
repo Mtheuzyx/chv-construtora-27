@@ -15,8 +15,11 @@ export function calculateBoletoStatus(
     return pagamento <= vencimento ? 'PAGO' : 'PAGO_COM_ATRASO';
   }
   
-  // Verifica se vence hoje
-  if (hoje.getTime() === vencimento.getTime()) {
+  // Calcula dias até o vencimento
+  const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+  
+  // Verifica se vence hoje ou um dia antes (será exibido como "vence hoje")
+  if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
     return 'PRESTES_A_VENCER'; // Usamos PRESTES_A_VENCER para "vence hoje"
   }
   
@@ -24,9 +27,6 @@ export function calculateBoletoStatus(
   if (vencimento < hoje) {
     return 'VENCIDO';
   }
-  
-  // Calcula dias até o vencimento
-  const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
   
   if (diasAteVencimento <= 7) {
     return 'PRESTES_A_VENCER';
@@ -42,12 +42,13 @@ export function getStatusLabel(status: BoletoStatus, dataVencimento?: string): s
     const vencimento = new Date(dataVencimento);
     vencimento.setHours(0, 0, 0, 0);
     
-    // Se vence hoje
-    if (hoje.getTime() === vencimento.getTime()) {
+    const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Se vence hoje ou um dia antes, mostra "Vence Hoje"
+    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
       return 'Vence Hoje';
     }
     
-    const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     return `Faltam ${diasAteVencimento} dias`;
   }
   
@@ -62,7 +63,22 @@ export function getStatusLabel(status: BoletoStatus, dataVencimento?: string): s
   return statusLabels[status];
 }
 
-export function getStatusColor(status: BoletoStatus): string {
+export function getStatusColor(status: BoletoStatus, dataVencimento?: string): string {
+  // Para status "PRESTES_A_VENCER", verificar se é "vence hoje" para usar cor azul
+  if (status === 'PRESTES_A_VENCER' && dataVencimento) {
+    const hoje = new Date();
+    hoje.setHours(0, 0, 0, 0);
+    const vencimento = new Date(dataVencimento);
+    vencimento.setHours(0, 0, 0, 0);
+    
+    const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Se vence hoje ou um dia antes, usar cor azul e destaque
+    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
+      return 'text-blue-600 bg-blue-100 font-bold border border-blue-300';
+    }
+  }
+  
   const statusColors: Record<BoletoStatus, string> = {
     PAGO: 'text-success bg-success/10',
     PAGO_COM_ATRASO: 'text-warning bg-warning/10',

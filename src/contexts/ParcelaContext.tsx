@@ -33,8 +33,10 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       return pagamento <= vencimento ? 'PAGO' : 'PAGO_COM_ATRASO';
     }
     
-    // Status para "Vence hoje"
-    if (hoje.getTime() === vencimento.getTime()) {
+    const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Status para "Vence hoje" (incluindo um dia antes)
+    if (diasAteVencimento <= 1 && diasAteVencimento >= 0) {
       return 'VENCE_HOJE';
     }
     
