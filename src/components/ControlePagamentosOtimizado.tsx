@@ -203,10 +203,30 @@ export function ControlePagamentosOtimizado() {
     }
   }, [deleteParcela, toast]);
 
-  const fornecedorOptions: AutocompleteOption[] = useMemo(() => [
-    { value: 'TODOS', label: 'Todos os fornecedores' },
-    ...fornecedores.map(f => ({ value: f.id, label: f.nome }))
-  ], [fornecedores]);
+  const fornecedorOptions: AutocompleteOption[] = useMemo(() => {
+    const uniqueFornecedores = Array.from(
+      new Set(parcelas.map(p => p.fornecedorId))
+    ).map(fornecedorId => {
+      const fornecedor = fornecedores.find(f => f.id === fornecedorId);
+      return fornecedor;
+    }).filter(Boolean);
+
+    console.log('Fornecedores únicos encontrados:', uniqueFornecedores.map(f => f?.nome));
+    console.log('Total de parcelas:', parcelas.length);
+    console.log('Total de fornecedores cadastrados:', fornecedores.length);
+
+    const options = [
+      { value: 'TODOS', label: 'Todos os fornecedores' },
+      ...uniqueFornecedores.map(f => ({ 
+        value: f!.id, 
+        label: f!.nome,
+        description: `ID: ${f!.id.slice(0, 8)}...`
+      }))
+    ];
+
+    console.log('Opções geradas:', options);
+    return options;
+  }, [parcelas, fornecedores]);
 
   return (
     <div className="space-y-6">
