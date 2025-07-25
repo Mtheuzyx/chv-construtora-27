@@ -39,16 +39,8 @@ export function Autocomplete({
 
   const selectedOption = options.find(option => option.value === value);
 
-  const filteredOptions = options.filter(option => {
-    if (!searchValue) return true;
-    
-    const searchLower = searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const labelLower = option.label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const descriptionLower = option.description ? option.description.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
-    
-    // Buscar tanto no label quanto na descrição
-    return labelLower.includes(searchLower) || descriptionLower.includes(searchLower);
-  });
+  // Não aplicar filtro manual pois o Command já filtra automaticamente
+  const filteredOptions = options;
 
   const handleSelect = useCallback((selectedValue: string) => {
     if (selectedValue === value) {
@@ -115,8 +107,8 @@ export function Autocomplete({
               {filteredOptions.map((option) => (
                 <CommandItem
                   key={option.value}
-                  value={option.value}
-                  onSelect={handleSelect}
+                  value={option.label}
+                  onSelect={() => handleSelect(option.value)}
                   className="cursor-pointer"
                 >
                   <Check
