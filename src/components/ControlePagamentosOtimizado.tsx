@@ -283,6 +283,7 @@ export function ControlePagamentosOtimizado() {
               onDelete={(item: any) => handleDeleteParcela(item.id, getFornecedorNome(item.fornecedorId), item.numeroParcela)}
               getStatusBadge={(status: ParcelaStatus) => <StatusBadge status={status} />}
               getFornecedorNome={getFornecedorNome}
+              type="parcelas"
             />
           ) : parcelasFiltradas.length > 100 ? (
             <VirtualizedTable

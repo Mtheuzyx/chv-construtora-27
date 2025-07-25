@@ -11,6 +11,7 @@ interface MobileTableProps {
   onDelete?: (item: any) => void;
   onView?: (item: any) => void;
   getStatusBadge?: (status: string) => React.ReactNode;
+  getFornecedorNome?: (fornecedorId: string) => string;
   type: 'parcelas' | 'fornecedores';
 }
 
@@ -20,6 +21,7 @@ export const MobileTable: React.FC<MobileTableProps> = ({
   onDelete,
   onView,
   getStatusBadge,
+  getFornecedorNome,
   type
 }) => {
   if (data.length === 0) {
@@ -40,7 +42,9 @@ export const MobileTable: React.FC<MobileTableProps> = ({
                 {/* Header */}
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="font-semibold text-sm">{item.fornecedorNome}</h3>
+                    <h3 className="font-semibold text-sm">
+                      {getFornecedorNome ? getFornecedorNome(item.fornecedorId) : item.fornecedorNome}
+                    </h3>
                     <p className="text-xs text-muted-foreground">
                       Parcela {item.numeroParcela}
                     </p>
