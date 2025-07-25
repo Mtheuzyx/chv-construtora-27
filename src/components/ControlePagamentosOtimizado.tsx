@@ -381,7 +381,7 @@ export function ControlePagamentosOtimizado() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="text-xs">
-                      {parcela.numeroParcela}ª
+                      {parcela.numeroParcela}ª de {parcela.totalParcelas}
                     </Badge>
                   </TableCell>
                   <TableCell className="font-medium">
@@ -534,7 +534,7 @@ export function ControlePagamentosOtimizado() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary" className="text-xs">
-                          {parcela.numeroParcela}ª parcela
+                          {parcela.numeroParcela}ª de {parcela.totalParcelas}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">

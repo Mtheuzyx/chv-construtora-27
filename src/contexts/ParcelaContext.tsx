@@ -56,7 +56,8 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           boletos!inner(
             fornecedor_id,
             forma_pagamento,
-            observacoes
+            observacoes,
+            quantidade_parcelas
           )
         `)
         .order('vencimento', { ascending: true });
@@ -76,7 +77,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         boletoId: p.boleto_id,
         fornecedorId: p.boletos.fornecedor_id,
         numeroParcela: p.numero_parcela,
-        totalParcelas: 1, // Será calculado posteriormente se necessário
+        totalParcelas: p.boletos.quantidade_parcelas,
         valor: Number(p.valor_parcela),
         dataVencimento: p.vencimento,
         dataPagamento: p.data_pagamento || undefined,

@@ -46,7 +46,7 @@ export const MobileTable: React.FC<MobileTableProps> = ({
                       {getFornecedorNome ? getFornecedorNome(item.fornecedorId) : item.fornecedorNome}
                     </h3>
                     <p className="text-xs text-muted-foreground">
-                      Parcela {item.numeroParcela}
+                      {item.numeroParcela}ª de {item.totalParcelas}
                     </p>
                   </div>
                   {getStatusBadge && getStatusBadge(item.status)}
