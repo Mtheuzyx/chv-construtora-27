@@ -109,6 +109,38 @@ export function ControlePagamentosOtimizado() {
     });
   }, [parcelas, filtros]);
 
+  // Calcula resumo de valores otimizado
+  const resumoValores = useMemo(() => {
+    let valorTotalPrevisto = 0;
+    let valorJaPago = 0;
+    let valorEmAtraso = 0;
+    let valorVenceHoje = 0;
+
+    for (const parcela of parcelas) {
+      valorTotalPrevisto += parcela.valor;
+      
+      switch (parcela.status) {
+        case 'PAGO':
+        case 'PAGO_COM_ATRASO':
+          valorJaPago += parcela.valor;
+          break;
+        case 'VENCIDO':
+          valorEmAtraso += parcela.valor;
+          break;
+        case 'VENCE_HOJE':
+          valorVenceHoje += parcela.valor;
+          break;
+      }
+    }
+
+    return {
+      valorTotalPrevisto,
+      valorJaPago,
+      valorEmAtraso,
+      valorVenceHoje
+    };
+  }, [parcelas]);
+
   const abrirEdicao = useCallback((parcela: any) => {
     setEditandoParcela(parcela.id);
     setDadosEdicao({
@@ -178,6 +210,45 @@ export function ControlePagamentosOtimizado() {
 
   return (
     <div className="space-y-6">
+      {/* Resumo de Indicadores */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-primary">
+              {formatCurrency(resumoValores.valorTotalPrevisto)}
+            </div>
+            <div className="text-sm text-muted-foreground">Total Previsto</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-green-600">
+              {formatCurrency(resumoValores.valorJaPago)}
+            </div>
+            <div className="text-sm text-muted-foreground">Já Pago</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-red-600">
+              {formatCurrency(resumoValores.valorEmAtraso)}
+            </div>
+            <div className="text-sm text-muted-foreground">Em Atraso</div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold text-orange-600">
+              {formatCurrency(resumoValores.valorVenceHoje)}
+            </div>
+            <div className="text-sm text-muted-foreground">Vence Hoje</div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Info sobre Parcelas */}
       <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950/20 dark:border-blue-800">
         <CardContent className="p-4">
