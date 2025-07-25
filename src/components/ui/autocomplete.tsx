@@ -40,10 +40,13 @@ export function Autocomplete({
   const selectedOption = options.find(option => option.value === value);
 
   const filteredOptions = options.filter(option => {
+    if (!searchValue) return true;
+    
     const searchLower = searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const labelLower = option.label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const descriptionLower = option.description ? option.description.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
     
+    // Buscar tanto no label quanto na descrição
     return labelLower.includes(searchLower) || descriptionLower.includes(searchLower);
   });
 
