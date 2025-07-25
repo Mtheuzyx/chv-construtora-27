@@ -8,7 +8,7 @@ import { Users, FileText, CreditCard, BarChart3 } from 'lucide-react';
 // Import components directly
 import { FornecedorForm } from '@/components/FornecedorForm';
 import { BoletoFormNovo } from '@/components/BoletoFormNovo';
-import { ControlePagamentos } from '@/components/ControlePagamentos';
+import { ControlePagamentosOtimizado as ControlePagamentos } from '@/components/ControlePagamentosOtimizado';
 import { Dashboard } from '@/components/Dashboard';
 
 const Index = () => {

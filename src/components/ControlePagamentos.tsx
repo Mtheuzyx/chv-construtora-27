@@ -24,6 +24,7 @@ export function ControlePagamentos() {
     parcelas,
     updateParcelaPagamento,
     updateParcelaVencimento,
+    updateParcelaValor,
     updateParcelaStatus,
     deleteParcela
   } = useParcelas();
@@ -41,6 +42,7 @@ export function ControlePagamentos() {
   const [dadosEdicao, setDadosEdicao] = useState({
     dataVencimento: '',
     dataPagamento: '',
+    valor: 0,
     status: '' as ParcelaStatus
   });
 
@@ -155,31 +157,43 @@ export function ControlePagamentos() {
     setDadosEdicao({
       dataVencimento: parcela.dataVencimento,
       dataPagamento: parcela.dataPagamento || '',
+      valor: parcela.valor,
       status: parcela.status
     });
   };
 
-  const salvarEdicao = () => {
+  const salvarEdicao = async () => {
     if (!editandoParcela) return;
     
-    // Atualiza data de vencimento se alterada
-    updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento);
-    
-    // Se data de pagamento foi preenchida, atualiza
-    if (dadosEdicao.dataPagamento) {
-      updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento);
+    try {
+      // Atualizar vencimento
+      await updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento);
+      
+      // Atualizar valor
+      await updateParcelaValor(editandoParcela, dadosEdicao.valor);
+      
+      // Atualizar pagamento ou status
+      if (dadosEdicao.dataPagamento) {
+        await updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento);
+      } else {
+        await updateParcelaStatus(editandoParcela, dadosEdicao.status);
+      }
+      
+      setEditandoParcela(null);
+      setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus });
+      
+      toast({
+        title: "Sucesso",
+        description: "Parcela atualizada com sucesso",
+      });
+    } catch (error) {
+      console.error('Erro ao salvar edição:', error);
+      toast({
+        title: "Erro", 
+        description: "Erro ao salvar alterações",
+        variant: "destructive"
+      });
     }
-    
-    // Permite alteração manual do status apenas para parcelas pagas
-    if (dadosEdicao.dataPagamento && (dadosEdicao.status === 'PAGO' || dadosEdicao.status === 'PAGO_COM_ATRASO')) {
-      updateParcelaStatus(editandoParcela, dadosEdicao.status);
-    }
-    
-    toast({
-      title: "Parcela atualizada!",
-      description: "Os dados da parcela foram atualizados com sucesso."
-    });
-    setEditandoParcela(null);
   };
 
   const handleDeleteParcela = (parcelaId: string, fornecedorNome: string, numeroParcela: number) => {
@@ -375,8 +389,13 @@ export function ControlePagamentos() {
                                 </div>
 
                                 <div>
-                                  <Label>Valor</Label>
-                                  <Input value={formatCurrency(parcela.valor)} disabled className="bg-muted" />
+                                  <Label>Valor da Parcela</Label>
+                                  <Input 
+                                    type="number" 
+                                    step="0.01"
+                                    value={dadosEdicao.valor} 
+                                    onChange={e => setDadosEdicao(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
+                                  />
                                 </div>
 
                                 <div>

@@ -9,6 +9,7 @@ interface ParcelaContextType {
   criarBoletoComParcelas: (boletoParcelas: NovoBoletoParcelas) => Promise<void>;
   updateParcelaPagamento: (parcelaId: string, dataPagamento: string) => Promise<void>;
   updateParcelaVencimento: (parcelaId: string, novaData: string) => Promise<void>;
+  updateParcelaValor: (parcelaId: string, novoValor: number) => Promise<void>;
   updateParcelaStatus: (parcelaId: string, novoStatus: ParcelaStatus) => Promise<void>;
   deleteParcela: (parcelaId: string) => Promise<void>;
   getParcelasByFornecedor: (fornecedorId: string) => Parcela[];
@@ -235,6 +236,48 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     }
   }, [calculateParcelaStatus, toast]);
 
+  const updateParcelaValor = useCallback(async (parcelaId: string, novoValor: number) => {
+    try {
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ valor_parcela: novoValor })
+        .eq('id', parcelaId);
+
+      if (error) {
+        console.error('Erro ao atualizar valor:', error);
+        toast({
+          title: "Erro",
+          description: "Erro ao atualizar valor da parcela",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Atualizar estado local
+      setParcelas(prev => prev.map(parcela => {
+        if (parcela.id === parcelaId) {
+          return {
+            ...parcela,
+            valor: novoValor
+          };
+        }
+        return parcela;
+      }));
+
+      toast({
+        title: "Sucesso",
+        description: "Valor da parcela atualizado",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar valor:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar valor",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
   const updateParcelaStatus = useCallback(async (parcelaId: string, novoStatus: ParcelaStatus) => {
     try {
       const statusMapping = {
@@ -356,6 +399,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     criarBoletoComParcelas, 
     updateParcelaPagamento,
     updateParcelaVencimento,
+    updateParcelaValor,
     updateParcelaStatus,
     deleteParcela,
     getParcelasByFornecedor,
@@ -366,6 +410,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     criarBoletoComParcelas, 
     updateParcelaPagamento,
     updateParcelaVencimento,
+    updateParcelaValor,
     updateParcelaStatus,
     deleteParcela,
     getParcelasByFornecedor,
