@@ -39,10 +39,13 @@ export function Autocomplete({
 
   const selectedOption = options.find(option => option.value === value);
 
-  const filteredOptions = options.filter(option =>
-    option.label.toLowerCase().includes(searchValue.toLowerCase()) ||
-    (option.description && option.description.toLowerCase().includes(searchValue.toLowerCase()))
-  );
+  const filteredOptions = options.filter(option => {
+    const searchLower = searchValue.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const labelLower = option.label.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const descriptionLower = option.description ? option.description.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') : '';
+    
+    return labelLower.includes(searchLower) || descriptionLower.includes(searchLower);
+  });
 
   const handleSelect = useCallback((selectedValue: string) => {
     if (selectedValue === value) {
