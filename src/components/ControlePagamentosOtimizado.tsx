@@ -55,6 +55,7 @@ export function ControlePagamentosOtimizado() {
   const [filtros, setFiltros] = useState({
     status: 'TODOS',
     fornecedor: 'TODOS',
+    searchTerm: '',
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
     dateType: 'vencimento' as 'vencimento' | 'pagamento'
@@ -79,7 +80,15 @@ export function ControlePagamentosOtimizado() {
         return false;
       }
 
-      // Filtro por fornecedor
+      // Filtro por fornecedor (busca por texto)
+      if (filtros.searchTerm) {
+        const fornecedorNome = getFornecedorNome(parcela.fornecedorId);
+        if (!fornecedorNome.toLowerCase().includes(filtros.searchTerm.toLowerCase())) {
+          return false;
+        }
+      }
+
+      // Filtro por fornecedor específico (se selecionado)
       if (filtros.fornecedor !== 'TODOS' && parcela.fornecedorId !== filtros.fornecedor) {
         return false;
       }
@@ -107,7 +116,7 @@ export function ControlePagamentosOtimizado() {
 
       return true;
     });
-  }, [parcelas, filtros]);
+  }, [parcelas, filtros, getFornecedorNome]);
 
   // Calcula resumo de valores otimizado
   const resumoValores = useMemo(() => {
@@ -289,12 +298,12 @@ export function ControlePagamentosOtimizado() {
             </div>
 
             <div className="space-y-2">
-              <Label>Fornecedor</Label>
-              <Autocomplete
-                options={fornecedorOptions}
-                value={filtros.fornecedor}
-                onValueChange={value => setFiltros(prev => ({ ...prev, fornecedor: value }))}
-                placeholder="Selecione um fornecedor"
+              <Label>Buscar Fornecedor</Label>
+              <Input
+                type="text"
+                placeholder="Digite o nome do fornecedor..."
+                value={filtros.searchTerm}
+                onChange={(e) => setFiltros(prev => ({ ...prev, searchTerm: e.target.value }))}
               />
             </div>
 
