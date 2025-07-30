@@ -23,15 +23,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const calculateParcelaStatus = useCallback((dataVencimento: string, dataPagamento?: string): ParcelaStatus => {
+  const calculateParcelaStatus = useCallback((dataVencimento: string, dataPagamento?: string, statusBanco?: string): ParcelaStatus => {
     const hoje = new Date();
     hoje.setHours(0, 0, 0, 0);
     const vencimento = new Date(dataVencimento);
     vencimento.setHours(0, 0, 0, 0);
     
+    // Se há data de pagamento, usar apenas "PAGO" (não automático com atraso)
     if (dataPagamento) {
-      const pagamento = new Date(dataPagamento);
-      return pagamento <= vencimento ? 'PAGO' : 'PAGO_COM_ATRASO';
+      // Se o status do banco indica "Pago com Atraso", manter; caso contrário, "PAGO"
+      return statusBanco === 'Pago com Atraso' ? 'PAGO_COM_ATRASO' : 'PAGO';
     }
     
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
@@ -81,7 +82,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         valor: Number(p.valor_parcela),
         dataVencimento: p.vencimento,
         dataPagamento: p.data_pagamento || undefined,
-        status: calculateParcelaStatus(p.vencimento, p.data_pagamento),
+        status: calculateParcelaStatus(p.vencimento, p.data_pagamento, p.status_pagamento),
         observacoes: p.observacoes || p.boletos.observacoes,
         createdAt: new Date().toISOString()
       })) || [];
@@ -168,13 +169,13 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // Atualizar estado local
+      // Atualizar estado local - sempre definir como PAGO quando data é informada
       setParcelas(prev => prev.map(parcela => {
         if (parcela.id === parcelaId) {
           return {
             ...parcela,
             dataPagamento,
-            status: calculateParcelaStatus(parcela.dataVencimento, dataPagamento)
+            status: 'PAGO'
           };
         }
         return parcela;
@@ -284,7 +285,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       const statusMapping = {
         'AGUARDANDO': 'Pendente',
         'PAGO': 'Pago',
-        'PAGO_COM_ATRASO': 'Pago',
+        'PAGO_COM_ATRASO': 'Pago com Atraso',
         'VENCIDO': 'Vencido',
         'VENCE_HOJE': 'Pendente'
       };
