@@ -180,9 +180,9 @@ All colors MUST be HSL.
   
   .scroll-container {
     overflow-y: auto;
-    max-height: calc(100vh - 200px);
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
+    overscroll-behavior: contain;
   }
   
   .scroll-container::-webkit-scrollbar {
