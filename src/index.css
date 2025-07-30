@@ -201,6 +201,12 @@ All colors MUST be HSL.
   .scroll-container::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground));
   }
+  
+  .loading-shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
 }
 
 @keyframes slideUp {
