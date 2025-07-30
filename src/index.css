@@ -144,11 +144,20 @@ All colors MUST be HSL.
   }
   
   .hover-lift {
-    @apply transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg;
+    @apply transition-transform duration-200 ease-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-medium);
   }
   
   .hover-glow {
-    @apply transition-all duration-300 ease-out hover:shadow-md;
+    @apply transition-shadow duration-300 ease-out;
+  }
+  
+  .hover-glow:hover {
+    box-shadow: var(--shadow-soft);
   }
   
   .animate-slide-up {
@@ -163,10 +172,34 @@ All colors MUST be HSL.
     animation: scaleIn 0.2s ease-out;
   }
   
-  .loading-shimmer {
-    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+  /* Optimized scroll behavior */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .scroll-container {
+    overflow-y: auto;
+    max-height: calc(100vh - 200px);
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  
+  .scroll-container::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+  }
+  
+  .scroll-container::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
   }
 }
 

@@ -402,154 +402,156 @@ export function ControlePagamentosOtimizadoV2() {
               getFornecedorNome={getFornecedorNome}
               type="parcelas"
             />
-          ) : parcelasFiltradas.length > 100 ? (
-            <VirtualizedTable
-              data={parcelasFiltradas}
-              rowHeight={60}
-              containerHeight={600}
-              keyExtractor={(item) => item.id}
-              headers={
-                <TableRow>
-                  <TableHead className="w-32">Fornecedor</TableHead>
-                  <TableHead className="w-24">Parcela</TableHead>
-                  <TableHead className="w-20">Valor</TableHead>
-                  <TableHead className="w-28">Vencimento</TableHead>
-                  <TableHead className="w-28">Pagamento</TableHead>
-                  <TableHead className="w-24">Status</TableHead>
-                  <TableHead className="w-32">Observações</TableHead>
-                  <TableHead className="w-20">Ações</TableHead>
-                </TableRow>
-              }
-              renderRow={(parcela) => (
-                <>
-                  <TableCell className="font-medium">
-                    {getFornecedorNome(parcela.fornecedorId)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs hover-lift">
-                      {parcela.numeroParcela}ª de {parcela.totalParcelas}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(parcela.valor)}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    {parcela.dataPagamento ? 
-                      new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR') : 
-                      <span className="text-muted-foreground">-</span>
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <OptimizedStatusBadge status={parcela.status} showIcon />
-                  </TableCell>
-                  <TableCell>
-                    {parcela.observacoes ? (
-                      <span className="text-sm text-muted-foreground">
-                        {parcela.observacoes}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" onClick={() => abrirEdicao(parcela)} className="hover-lift">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md animate-scale-in">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <Edit className="h-5 w-5" />
-                              Editar Parcela
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label>Fornecedor</Label>
-                              <Input value={getFornecedorNome(parcela.fornecedorId)} disabled className="bg-muted" />
-                            </div>
-
-                            <div>
-                              <Label>Valor da Parcela</Label>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                value={dadosEdicao.valor} 
-                                onChange={(e) => setDadosEdicao(prev => ({ ...prev, valor: Number(e.target.value) }))}
-                                className="fast-transition"
-                              />
-                            </div>
-
-                            <div>
-                              <Label>Data de Vencimento</Label>
-                              <Input 
-                                type="date" 
-                                value={dadosEdicao.dataVencimento} 
-                                onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataVencimento: e.target.value }))}
-                                className="fast-transition"
-                              />
-                            </div>
-
-                            <div>
-                              <Label>Data de Pagamento</Label>
-                              <Input 
-                                type="date" 
-                                value={dadosEdicao.dataPagamento} 
-                                onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))}
-                                className="fast-transition"
-                              />
-                            </div>
-
-                            {!dadosEdicao.dataPagamento && (
+          ) : parcelasFiltradas.length > 50 ? (
+            <div className="scroll-container">
+              <VirtualizedTable
+                data={parcelasFiltradas}
+                rowHeight={56}
+                containerHeight={500}
+                keyExtractor={(item) => item.id}
+                headers={
+                  <TableRow className="sticky top-0 bg-background z-10">
+                    <TableHead className="w-32">Fornecedor</TableHead>
+                    <TableHead className="w-24">Parcela</TableHead>
+                    <TableHead className="w-20">Valor</TableHead>
+                    <TableHead className="w-28">Vencimento</TableHead>
+                    <TableHead className="w-28">Pagamento</TableHead>
+                    <TableHead className="w-24">Status</TableHead>
+                    <TableHead className="w-32">Observações</TableHead>
+                    <TableHead className="w-20">Ações</TableHead>
+                  </TableRow>
+                }
+                renderRow={(parcela) => (
+                  <>
+                    <TableCell className="font-medium">
+                      {getFornecedorNome(parcela.fornecedorId)}
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs hover-lift">
+                        {parcela.numeroParcela}ª de {parcela.totalParcelas}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {formatCurrency(parcela.valor)}
+                    </TableCell>
+                    <TableCell>
+                      {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                    </TableCell>
+                    <TableCell>
+                      {parcela.dataPagamento ? 
+                        new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR') : 
+                        <span className="text-muted-foreground">-</span>
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <OptimizedStatusBadge status={parcela.status} showIcon />
+                    </TableCell>
+                    <TableCell>
+                      {parcela.observacoes ? (
+                        <span className="text-sm text-muted-foreground">
+                          {parcela.observacoes}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button size="sm" variant="outline" onClick={() => abrirEdicao(parcela)} className="hover-lift">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md animate-scale-in">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <Edit className="h-5 w-5" />
+                                Editar Parcela
+                              </DialogTitle>
+                            </DialogHeader>
+                            <div className="space-y-4">
                               <div>
-                                <Label>Status</Label>
-                                <Select value={dadosEdicao.status} onValueChange={(value) => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}>
-                                  <SelectTrigger className="fast-transition">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
-                                    <SelectItem value="VENCE_HOJE">Vence Hoje</SelectItem>
-                                    <SelectItem value="VENCIDO">Vencido</SelectItem>
-                                    <SelectItem value="PAGO">Pago</SelectItem>
-                                    <SelectItem value="PAGO_COM_ATRASO">Pago c/ Atraso</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <Label>Fornecedor</Label>
+                                <Input value={getFornecedorNome(parcela.fornecedorId)} disabled className="bg-muted" />
                               </div>
-                            )}
 
-                            <div className="flex gap-2 pt-4">
-                              <Button onClick={salvarEdicao} className="flex-1 hover-lift">
-                                Salvar Alterações
-                              </Button>
+                              <div>
+                                <Label>Valor da Parcela</Label>
+                                <Input 
+                                  type="number" 
+                                  step="0.01"
+                                  value={dadosEdicao.valor} 
+                                  onChange={(e) => setDadosEdicao(prev => ({ ...prev, valor: Number(e.target.value) }))}
+                                  className="fast-transition"
+                                />
+                              </div>
+
+                              <div>
+                                <Label>Data de Vencimento</Label>
+                                <Input 
+                                  type="date" 
+                                  value={dadosEdicao.dataVencimento} 
+                                  onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataVencimento: e.target.value }))}
+                                  className="fast-transition"
+                                />
+                              </div>
+
+                              <div>
+                                <Label>Data de Pagamento</Label>
+                                <Input 
+                                  type="date" 
+                                  value={dadosEdicao.dataPagamento} 
+                                  onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))}
+                                  className="fast-transition"
+                                />
+                              </div>
+
+                              {!dadosEdicao.dataPagamento && (
+                                <div>
+                                  <Label>Status</Label>
+                                  <Select value={dadosEdicao.status} onValueChange={(value) => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}>
+                                    <SelectTrigger className="fast-transition">
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
+                                      <SelectItem value="VENCE_HOJE">Vence Hoje</SelectItem>
+                                      <SelectItem value="VENCIDO">Vencido</SelectItem>
+                                      <SelectItem value="PAGO">Pago</SelectItem>
+                                      <SelectItem value="PAGO_COM_ATRASO">Pago c/ Atraso</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              )}
+
+                              <div className="flex gap-2 pt-4">
+                                <Button onClick={salvarEdicao} className="flex-1 hover-lift">
+                                  Salvar Alterações
+                                </Button>
+                              </div>
                             </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                      
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleDeleteParcela(parcela.id, getFornecedorNome(parcela.fornecedorId), parcela.numeroParcela)}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 hover-lift"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </>
-              )}
-            />
+                          </DialogContent>
+                        </Dialog>
+                        
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => handleDeleteParcela(parcela.id, getFornecedorNome(parcela.fornecedorId), parcela.numeroParcela)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 hover-lift"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </>
+                )}
+              />
+            </div>
           ) : (
-            <div className="animate-fade-in">
+            <div className="scroll-container">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-background z-10">
                   <TableRow>
                     <TableHead className="w-32">Fornecedor</TableHead>
                     <TableHead className="w-24">Parcela</TableHead>
@@ -562,8 +564,8 @@ export function ControlePagamentosOtimizadoV2() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {parcelasFiltradas.map((parcela, index) => (
-                    <TableRow key={parcela.id} className="hover:bg-muted/50 fast-transition" style={{ animationDelay: `${index * 0.05}s` }}>
+                  {parcelasFiltradas.map((parcela) => (
+                    <TableRow key={parcela.id} className="hover:bg-muted/50 fast-transition">
                       <TableCell className="font-medium">
                         {getFornecedorNome(parcela.fornecedorId)}
                       </TableCell>
