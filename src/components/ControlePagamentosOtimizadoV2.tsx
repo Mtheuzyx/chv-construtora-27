@@ -183,9 +183,13 @@ export function ControlePagamentosOtimizadoV2() {
   }, [fornecedores]);
 
   const parcelasFiltradas = useMemo(() => {
+    console.log('🔍 Aplicando filtros...');
+    console.log('📋 Total de parcelas antes do filtro:', parcelas?.length || 0);
+    console.log('🎯 Filtros aplicados:', filtros);
+    
     if (!parcelas?.length) return [];
     
-    return parcelas.filter(parcela => {
+    const filtradas = parcelas.filter(parcela => {
       if (filtros.status !== 'TODOS' && parcela.status !== filtros.status) return false;
       if (filtros.fornecedor !== 'TODOS' && parcela.fornecedorId !== filtros.fornecedor) return false;
 
@@ -203,6 +207,9 @@ export function ControlePagamentosOtimizadoV2() {
 
       return true;
     });
+    
+    console.log('✅ Parcelas após filtros:', filtradas.length);
+    return filtradas;
   }, [parcelas, filtros]);
 
   const resumoValores = useMemo(() => {

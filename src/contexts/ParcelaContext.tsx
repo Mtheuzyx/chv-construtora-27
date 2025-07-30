@@ -48,6 +48,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const loadParcelas = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('🔄 Iniciando carregamento de parcelas...');
       
       // Buscar parcelas e boletos com join
       const { data: parcelasData, error } = await supabase
@@ -62,6 +63,9 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           )
         `)
         .order('vencimento', { ascending: true });
+
+      console.log('📊 Dados brutos do Supabase:', parcelasData);
+      console.log('❌ Erro do Supabase:', error);
 
       if (error) {
         console.error('Erro ao carregar parcelas:', error);
@@ -86,6 +90,9 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         observacoes: p.observacoes || p.boletos.observacoes,
         createdAt: new Date().toISOString()
       })) || [];
+
+      console.log('✅ Parcelas formatadas:', parcelasFormatadas);
+      console.log('📈 Total de parcelas carregadas:', parcelasFormatadas.length);
 
       setParcelas(parcelasFormatadas);
     } catch (error) {
