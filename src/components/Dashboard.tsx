@@ -6,9 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { useParcelas } from '@/contexts/ParcelaContext';
 import { useFornecedores } from '@/contexts/FornecedorContext';
 import { TrendingUp, Users, FileText, CreditCard, DollarSign, AlertTriangle, CheckCircle } from 'lucide-react';
+import { formatCurrency } from '@/utils/formatters';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 
 export function Dashboard() {
-  const { parcelas } = useParcelas();
+  const { parcelas, loading } = useParcelas();
   const { fornecedores } = useFornecedores();
   const [filtros, setFiltros] = useState({
     dataInicio: '',
@@ -110,13 +112,25 @@ export function Dashboard() {
       .slice(0, 5);
   }, [fornecedores, dadosFiltrados]);
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <LoadingSkeleton type="filters" count={1} />
+        <LoadingSkeleton type="cards" count={4} />
+        <LoadingSkeleton type="cards" count={3} />
+        <LoadingSkeleton type="cards" count={3} />
+        <LoadingSkeleton type="table" count={5} />
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Filtros por Período */}
-      <Card>
+      <Card className="hover-glow">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5" />
+            <CreditCard className="h-5 w-5 text-primary" />
             Filtros por Período
           </CardTitle>
         </CardHeader>
@@ -144,58 +158,66 @@ export function Dashboard() {
 
       {/* Cards de Estatísticas Principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="hover-scale">
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   {estatisticas.totalFornecedores}
                 </div>
-                <div className="text-sm text-muted-foreground">Total de Fornecedores</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <Users className="h-4 w-4" />
+                  Total de Fornecedores
+                </div>
               </div>
-              <Users className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale">
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   {estatisticas.totalBoletos}
                 </div>
-                <div className="text-sm text-muted-foreground">Boletos Cadastrados</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <FileText className="h-4 w-4" />
+                  Boletos Cadastrados
+                </div>
               </div>
-              <FileText className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-primary">
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   {estatisticas.totalParcelas}
                 </div>
-                <div className="text-sm text-muted-foreground">Parcelas Cadastradas</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CreditCard className="h-4 w-4" />
+                  Parcelas Cadastradas
+                </div>
               </div>
-              <CreditCard className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.3s' }}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-lg font-bold text-primary">
+                <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                   {estatisticas.percentualPago.toFixed(1)}%
                 </div>
-                <div className="text-sm text-muted-foreground">Taxa de Pagamento</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="h-4 w-4" />
+                  Taxa de Pagamento
+                </div>
               </div>
-              <TrendingUp className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -203,44 +225,50 @@ export function Dashboard() {
 
       {/* Cards de Valores */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up">
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-primary">
-                  R$ {estatisticas.valorTotalPrevisto.toFixed(2)}
+                <div className="text-2xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                  {formatCurrency(estatisticas.valorTotalPrevisto)}
                 </div>
-                <div className="text-sm text-muted-foreground">Total Previsto</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <DollarSign className="h-4 w-4" />
+                  Total Previsto
+                </div>
               </div>
-              <DollarSign className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-green-600">
-                  R$ {estatisticas.valorPago.toFixed(2)}
+                <div className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+                  {formatCurrency(estatisticas.valorPago)}
                 </div>
-                <div className="text-sm text-muted-foreground">Já Pago</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <CheckCircle className="h-4 w-4" />
+                  Já Pago
+                </div>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600 opacity-60" />
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-2xl font-bold text-red-600">
-                  R$ {estatisticas.valorEmAtraso.toFixed(2)}
+                <div className="text-2xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
+                  {formatCurrency(estatisticas.valorEmAtraso)}
                 </div>
-                <div className="text-sm text-muted-foreground">Em Atraso</div>
+                <div className="text-sm text-muted-foreground flex items-center gap-1">
+                  <AlertTriangle className="h-4 w-4" />
+                  Em Atraso
+                </div>
               </div>
-              <AlertTriangle className="h-8 w-8 text-red-600 opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -248,51 +276,54 @@ export function Dashboard() {
 
       {/* Status das Parcelas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up">
+          <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 bg-clip-text text-transparent">
                 {estatisticas.parcelasAguardando}
               </div>
-              <Badge variant="secondary" className="mt-2">Aguardando</Badge>
+              <Badge variant="secondary" className="mt-2 hover-lift">Aguardando</Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.1s' }}>
+          <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
                 {estatisticas.parcelasPagas}
               </div>
-              <Badge variant="default" className="mt-2">Pagas</Badge>
+              <Badge variant="default" className="mt-2 hover-lift">Pagas</Badge>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="hover-lift animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <CardContent className="p-6">
             <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">
+              <div className="text-3xl font-bold bg-gradient-to-r from-red-600 to-rose-600 bg-clip-text text-transparent">
                 {estatisticas.parcelasVencidas}
               </div>
-              <Badge variant="destructive" className="mt-2">Vencidas</Badge>
+              <Badge variant="destructive" className="mt-2 hover-lift">Vencidas</Badge>
             </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Top Fornecedores */}
-      <Card>
+      <Card className="hover-glow animate-slide-up">
         <CardHeader>
-          <CardTitle>Top 5 Fornecedores por Valor</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-primary" />
+            Top 5 Fornecedores por Valor
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {topFornecedores.map((fornecedor, index) => (
-              <div key={fornecedor.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div key={fornecedor.id} className="flex items-center justify-between p-4 border rounded-lg hover-lift fast-transition animate-slide-up" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="flex items-center gap-3">
-                  <Badge variant="outline">#{index + 1}</Badge>
+                  <Badge variant="outline" className="hover-lift">#{index + 1}</Badge>
                   <div>
                     <div className="font-medium">{fornecedor.nome}</div>
                     <div className="text-sm text-muted-foreground">
@@ -301,18 +332,20 @@ export function Dashboard() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="font-bold text-primary">
-                    R$ {fornecedor.valorTotal.toFixed(2)}
+                  <div className="font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                    {formatCurrency(fornecedor.valorTotal)}
                   </div>
-                  <Badge variant={fornecedor.tipo === 'Fornecedor' ? 'secondary' : 'outline'}>
+                  <Badge variant={fornecedor.tipo === 'Fornecedor' ? 'secondary' : 'outline'} className="hover-lift">
                     {fornecedor.tipo}
                   </Badge>
                 </div>
               </div>
             ))}
             {topFornecedores.length === 0 && (
-              <div className="text-center text-muted-foreground py-8">
-                Nenhum fornecedor encontrado no período selecionado
+              <div className="text-center text-muted-foreground py-12 animate-fade-in">
+                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium">Nenhum fornecedor encontrado</p>
+                <p className="text-sm">Ajuste os filtros para visualizar os dados</p>
               </div>
             )}
           </div>

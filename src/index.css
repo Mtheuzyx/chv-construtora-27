@@ -47,6 +47,22 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
+    /* Performance and animations */
+    --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-elastic: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Gradients for better visual appeal */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(210 100% 50%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(142 76% 46%));
+    --gradient-warning: linear-gradient(135deg, hsl(var(--warning)), hsl(38 92% 60%));
+    --gradient-destructive: linear-gradient(135deg, hsl(var(--destructive)), hsl(0 75% 65%));
+    
+    /* Shadows for depth */
+    --shadow-soft: 0 2px 8px -2px hsl(var(--foreground) / 0.1);
+    --shadow-medium: 0 4px 16px -4px hsl(var(--foreground) / 0.15);
+    --shadow-strong: 0 8px 32px -8px hsl(var(--foreground) / 0.2);
+
     --sidebar-background: 0 0% 98%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -111,6 +127,92 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Performance optimizations and utility classes */
+@layer utilities {
+  .smooth-transition {
+    transition: var(--transition-smooth);
+  }
+  
+  .fast-transition {
+    transition: var(--transition-fast);
+  }
+  
+  .elastic-transition {
+    transition: var(--transition-elastic);
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-lg;
+  }
+  
+  .hover-glow {
+    @apply transition-all duration-300 ease-out hover:shadow-md;
+  }
+  
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  .animate-fade-in {
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  .animate-scale-in {
+    animation: scaleIn 0.2s ease-out;
+  }
+  
+  .loading-shimmer {
+    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--muted-foreground) / 0.1) 50%, hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Skeleton loading states */
+.skeleton {
+  @apply loading-shimmer rounded-md bg-muted;
 }
 
 a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovable"], .lovable-badge { 
