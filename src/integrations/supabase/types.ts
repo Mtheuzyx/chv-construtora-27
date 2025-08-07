@@ -20,6 +20,7 @@ export type Database = {
           forma_pagamento: string
           fornecedor_id: string
           id: string
+          obra_id: string | null
           observacoes: string | null
           quantidade_parcelas: number
           valor_total: number
@@ -30,6 +31,7 @@ export type Database = {
           forma_pagamento: string
           fornecedor_id: string
           id?: string
+          obra_id?: string | null
           observacoes?: string | null
           quantidade_parcelas?: number
           valor_total: number
@@ -40,6 +42,7 @@ export type Database = {
           forma_pagamento?: string
           fornecedor_id?: string
           id?: string
+          obra_id?: string | null
           observacoes?: string | null
           quantidade_parcelas?: number
           valor_total?: number
@@ -51,6 +54,13 @@ export type Database = {
             columns: ["fornecedor_id"]
             isOneToOne: false
             referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boletos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
             referencedColumns: ["id"]
           },
         ]
@@ -82,6 +92,57 @@ export type Database = {
           id?: string
           nome?: string
           telefone?: string | null
+        }
+        Relationships: []
+      }
+      obras: {
+        Row: {
+          codigo: string | null
+          created_at: string
+          data_inicio: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          numero_unico: string | null
+          outros_dados: string | null
+          proprietario: string | null
+          responsavel: string | null
+          status: string | null
+          telefone: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          codigo?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          numero_unico?: string | null
+          outros_dados?: string | null
+          proprietario?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codigo?: string | null
+          created_at?: string
+          data_inicio?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          numero_unico?: string | null
+          outros_dados?: string | null
+          proprietario?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
