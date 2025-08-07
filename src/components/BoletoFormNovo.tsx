@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useFornecedores } from '@/contexts/FornecedorContext';
 import { useParcelas } from '@/contexts/ParcelaContext';
+import { useObras } from '@/contexts/ObraContext';
 import { useToast } from '@/hooks/use-toast';
 import { Search, X } from 'lucide-react';
 import { formatDocument, formatPhone, cleanDocument } from '@/utils/formatters';
@@ -15,10 +16,12 @@ import { formatDocument, formatPhone, cleanDocument } from '@/utils/formatters';
 export function BoletoFormNovo() {
   const { fornecedores } = useFornecedores();
   const { criarBoletoComParcelas } = useParcelas();
+  const { obras } = useObras();
   const { toast } = useToast();
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFornecedor, setSelectedFornecedor] = useState<string>('');
+  const [selectedObra, setSelectedObra] = useState<string>('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -168,11 +171,13 @@ export function BoletoFormNovo() {
       valorParcela: parseFloat(formData.valorParcela),
       quantidadeParcelas: parseInt(formData.quantidadeParcelas),
       dataVencimentoPrimeira: formData.dataVencimentoPrimeira,
-      observacoes: formData.observacoes
+      observacoes: formData.observacoes,
+      obraId: selectedObra || null
     });
     
     // Reset do formulário
     setSelectedFornecedor('');
+    setSelectedObra('');
     setSearchTerm('');
     setShowDropdown(false);
     setIsInputFocused(false);
@@ -281,6 +286,24 @@ export function BoletoFormNovo() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Obra associada (opcional) */}
+          <div className="space-y-2">
+            <Label className="text-sm font-medium">Obra Associada (opcional)</Label>
+            <Select value={selectedObra} onValueChange={(v) => setSelectedObra(v)}>
+              <SelectTrigger className="h-11">
+                <SelectValue placeholder="Selecione uma obra (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Nenhuma</SelectItem>
+                {obras.map((o) => (
+                  <SelectItem key={o.id} value={o.id}>
+                    {o.codigo} - {o.nome}{o.endereco ? ` - ${o.endereco}` : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Resto do Formulário */}

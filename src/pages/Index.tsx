@@ -3,19 +3,23 @@ import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FornecedorProvider } from '@/contexts/FornecedorContext';
 import { ParcelaProvider } from '@/contexts/ParcelaContext';
-import { Users, FileText, CreditCard, BarChart3 } from 'lucide-react';
+import { ObraProvider } from '@/contexts/ObraContext';
+import { Users, FileText, CreditCard, BarChart3, Building2 } from 'lucide-react';
 
 // Import components directly
 import { FornecedorForm } from '@/components/FornecedorForm';
 import { BoletoFormNovo } from '@/components/BoletoFormNovo';
+import { ObraForm } from '@/components/ObraForm';
+import { BoletoList } from '@/components/BoletoList';
 import { ControlePagamentosOtimizadoV2 as ControlePagamentos } from '@/components/ControlePagamentosOtimizadoV2';
 import { Dashboard } from '@/components/Dashboard';
 
 const Index = () => {
   return (
-    <FornecedorProvider>
-      <ParcelaProvider>
-        <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
+    <ObraProvider>
+      <FornecedorProvider>
+        <ParcelaProvider>
+          <div className="min-h-screen bg-gradient-to-br from-background via-background to-accent/20">
           <div className="container mx-auto py-4 px-2 sm:py-8 sm:px-4">
             {/* Header - Mobile optimized */}
             <div className="text-center mb-6 sm:mb-8">
@@ -36,7 +40,7 @@ const Index = () => {
 
             <Tabs defaultValue="fornecedores" className="w-full">
               {/* Mobile-first tabs layout */}
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 sm:mb-8 h-auto bg-card border animate-fade-in">
+              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-6 sm:mb-8 h-auto bg-card border animate-fade-in">
                 <TabsTrigger 
                   value="fornecedores" 
                   className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
@@ -44,6 +48,14 @@ const Index = () => {
                   <Users className="h-4 w-4" />
                   <span className="hidden sm:inline">Cadastro de</span>
                   <span>Fornecedores</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="obras" 
+                  className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
+                >
+                  <Building2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Cadastro de</span>
+                  <span>Obras</span>
                 </TabsTrigger>
                 <TabsTrigger 
                   value="boletos" 
@@ -74,8 +86,15 @@ const Index = () => {
                 <FornecedorForm />
               </TabsContent>
 
+              <TabsContent value="obras" className="space-y-6 animate-fade-in">
+                <ObraForm />
+              </TabsContent>
+
               <TabsContent value="boletos" className="space-y-6 animate-fade-in">
-                <BoletoFormNovo />
+                <div className="space-y-6">
+                  <BoletoFormNovo />
+                  <BoletoList />
+                </div>
               </TabsContent>
 
               <TabsContent value="pagamentos" className="space-y-6 animate-fade-in">
@@ -90,6 +109,7 @@ const Index = () => {
         </div>
       </ParcelaProvider>
     </FornecedorProvider>
+  </ObraProvider>
   );
 };
 

@@ -121,7 +121,8 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           valor_total: valorTotal,
           quantidade_parcelas: boletoParcelas.quantidadeParcelas,
           vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
-          observacoes: boletoParcelas.observacoes
+          observacoes: boletoParcelas.observacoes,
+          obra_id: boletoParcelas.obraId ?? null
         })
         .select()
         .single();

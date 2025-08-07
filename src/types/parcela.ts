@@ -27,4 +27,5 @@ export interface NovoBoletoParcelas {
   quantidadeParcelas: number;
   dataVencimentoPrimeira: string;
   observacoes?: string;
+  obraId?: string | null;
 }
