@@ -11,7 +11,7 @@ import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 const FornecedorForm = lazy(() => import('@/components/FornecedorForm').then(m => ({ default: m.FornecedorForm })));
 const BoletoFormNovo = lazy(() => import('@/components/BoletoFormNovo').then(m => ({ default: m.BoletoFormNovo })));
 const ObraForm = lazy(() => import('@/components/ObraForm').then(m => ({ default: m.ObraForm })));
-const BoletoList = lazy(() => import('@/components/BoletoList').then(m => ({ default: m.BoletoList })));
+// BoletoList removido para manter layout original
 const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosOtimizadoV2').then(m => ({ default: m.ControlePagamentosOtimizadoV2 })));
 const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
 
@@ -98,10 +98,7 @@ const Index = () => {
 
 <TabsContent value="boletos" className="space-y-6 animate-fade-in">
   <Suspense fallback={<LoadingSkeleton type="filters" count={1} />}>
-    <div className="space-y-6">
       <BoletoFormNovo />
-      <BoletoList />
-    </div>
   </Suspense>
 </TabsContent>
 
