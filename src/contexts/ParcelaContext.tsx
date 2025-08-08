@@ -59,7 +59,15 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
             fornecedor_id,
             forma_pagamento,
             observacoes,
-            quantidade_parcelas
+            quantidade_parcelas,
+            obra_id,
+            obras(
+              codigo,
+              numero_unico,
+              nome,
+              endereco,
+              responsavel
+            )
           )
         `)
         .order('vencimento', { ascending: true });
@@ -87,7 +95,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         dataVencimento: p.vencimento,
         dataPagamento: p.data_pagamento || undefined,
         status: calculateParcelaStatus(p.vencimento, p.data_pagamento, p.status_pagamento),
-        observacoes: p.observacoes || p.boletos.observacoes,
+        observacoes: (() => { const existing = p.observacoes || p.boletos.observacoes; const o = p.boletos?.obras; const obraInfo = o ? [o.codigo || o.numero_unico, o.nome, o.endereco, o.responsavel ? `Resp: ${o.responsavel}` : ''].filter(Boolean).join(' - ') : ''; return obraInfo ? `${existing ? `${existing} | ` : ''}Obra: ${obraInfo}` : existing; })(),
         createdAt: new Date().toISOString()
       })) || [];
 
