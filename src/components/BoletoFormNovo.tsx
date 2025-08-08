@@ -291,12 +291,12 @@ export function BoletoFormNovo() {
           {/* Obra associada (opcional) */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Obra Associada (opcional)</Label>
-            <Select value={selectedObra} onValueChange={(v) => setSelectedObra(v)}>
+            <Select value={selectedObra || 'NONE'} onValueChange={(v) => setSelectedObra(v === 'NONE' ? '' : v)}>
               <SelectTrigger className="h-11">
                 <SelectValue placeholder="Selecione uma obra (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Nenhuma</SelectItem>
+                <SelectItem value="NONE">Nenhuma</SelectItem>
                 {obras.map((o) => (
                   <SelectItem key={o.id} value={o.id}>
                     {o.codigo} - {o.nome}{o.endereco ? ` - ${o.endereco}` : ''}
