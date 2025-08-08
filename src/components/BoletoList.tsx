@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useObras } from '@/contexts/ObraContext';
+import { VirtualizedTable } from '@/components/VirtualizedTable';
 
 interface BoletoRow {
   id: string;
@@ -87,41 +88,73 @@ export function BoletoList() {
           </div>
         </div>
 
-        <div className="rounded-md border overflow-auto" style={{ maxHeight: '60vh' }}>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="sticky top-0 bg-background">Número da Obra</TableHead>
-                <TableHead className="sticky top-0 bg-background">Nome / Endereço</TableHead>
-                <TableHead className="sticky top-0 bg-background">Responsável</TableHead>
-                <TableHead className="sticky top-0 bg-background">Forma</TableHead>
-                <TableHead className="sticky top-0 bg-background">Parcelas</TableHead>
-                <TableHead className="sticky top-0 bg-background">Venc. 1ª</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow><TableCell colSpan={6}>Carregando...</TableCell></TableRow>
-              ) : filtered.length === 0 ? (
-                <TableRow><TableCell colSpan={6}>Nenhum boleto encontrado.</TableCell></TableRow>
-              ) : (
-                filtered.map((b) => (
-                  <TableRow key={b.id}>
-                    <TableCell>{b.obras?.codigo || '-'}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{b.obras?.nome || '-'}</div>
-                      <div className="text-xs text-muted-foreground">{b.obras?.endereco || '-'}</div>
-                    </TableCell>
-                    <TableCell>{b.obras?.responsavel || '-'}</TableCell>
-                    <TableCell>{b.forma_pagamento}</TableCell>
-                    <TableCell>{b.quantidade_parcelas}</TableCell>
-                    <TableCell>{new Date(b.vencimento_primeira + 'T00:00:00').toLocaleDateString('pt-BR')}</TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+<div className="rounded-md border overflow-auto" style={{ maxHeight: '60vh' }}>
+  {filtered.length > 50 ? (
+    <VirtualizedTable
+      data={filtered}
+      rowHeight={56}
+      containerHeight={Math.min(window.innerHeight * 0.6, 700)}
+      keyExtractor={(b) => b.id}
+      headers={
+        <TableRow>
+          <TableHead className="sticky top-0 bg-background">Número da Obra</TableHead>
+          <TableHead className="sticky top-0 bg-background">Nome / Endereço</TableHead>
+          <TableHead className="sticky top-0 bg-background">Responsável</TableHead>
+          <TableHead className="sticky top-0 bg-background">Forma</TableHead>
+          <TableHead className="sticky top-0 bg-background">Parcelas</TableHead>
+          <TableHead className="sticky top-0 bg-background">Venc. 1ª</TableHead>
+        </TableRow>
+      }
+      renderRow={(b) => (
+        <>
+          <TableCell>{b.obras?.codigo || '-'}</TableCell>
+          <TableCell>
+            <div className="font-medium">{b.obras?.nome || '-'}</div>
+            <div className="text-xs text-muted-foreground">{b.obras?.endereco || '-'}</div>
+          </TableCell>
+          <TableCell>{b.obras?.responsavel || '-'}</TableCell>
+          <TableCell>{b.forma_pagamento}</TableCell>
+          <TableCell>{b.quantidade_parcelas}</TableCell>
+          <TableCell>{new Date(b.vencimento_primeira + 'T00:00:00').toLocaleDateString('pt-BR')}</TableCell>
+        </>
+      )}
+    />
+  ) : (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="sticky top-0 bg-background">Número da Obra</TableHead>
+          <TableHead className="sticky top-0 bg-background">Nome / Endereço</TableHead>
+          <TableHead className="sticky top-0 bg-background">Responsável</TableHead>
+          <TableHead className="sticky top-0 bg-background">Forma</TableHead>
+          <TableHead className="sticky top-0 bg-background">Parcelas</TableHead>
+          <TableHead className="sticky top-0 bg-background">Venc. 1ª</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {loading ? (
+          <TableRow><TableCell colSpan={6}>Carregando...</TableCell></TableRow>
+        ) : filtered.length === 0 ? (
+          <TableRow><TableCell colSpan={6}>Nenhum boleto encontrado.</TableCell></TableRow>
+        ) : (
+          filtered.map((b) => (
+            <TableRow key={b.id}>
+              <TableCell>{b.obras?.codigo || '-'}</TableCell>
+              <TableCell>
+                <div className="font-medium">{b.obras?.nome || '-'}</div>
+                <div className="text-xs text-muted-foreground">{b.obras?.endereco || '-'}</div>
+              </TableCell>
+              <TableCell>{b.obras?.responsavel || '-'}</TableCell>
+              <TableCell>{b.forma_pagamento}</TableCell>
+              <TableCell>{b.quantidade_parcelas}</TableCell>
+              <TableCell>{new Date(b.vencimento_primeira + 'T00:00:00').toLocaleDateString('pt-BR')}</TableCell>
+            </TableRow>
+          ))
+        )}
+      </TableBody>
+    </Table>
+  )}
+</div>
       </CardContent>
     </Card>
   );

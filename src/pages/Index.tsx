@@ -1,18 +1,20 @@
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FornecedorProvider } from '@/contexts/FornecedorContext';
 import { ParcelaProvider } from '@/contexts/ParcelaContext';
 import { ObraProvider } from '@/contexts/ObraContext';
 import { Users, FileText, CreditCard, BarChart3, Building2 } from 'lucide-react';
 
-// Import components directly
-import { FornecedorForm } from '@/components/FornecedorForm';
-import { BoletoFormNovo } from '@/components/BoletoFormNovo';
-import { ObraForm } from '@/components/ObraForm';
-import { BoletoList } from '@/components/BoletoList';
-import { ControlePagamentosOtimizadoV2 as ControlePagamentos } from '@/components/ControlePagamentosOtimizadoV2';
-import { Dashboard } from '@/components/Dashboard';
+import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+
+const FornecedorForm = lazy(() => import('@/components/FornecedorForm').then(m => ({ default: m.FornecedorForm })));
+const BoletoFormNovo = lazy(() => import('@/components/BoletoFormNovo').then(m => ({ default: m.BoletoFormNovo })));
+const ObraForm = lazy(() => import('@/components/ObraForm').then(m => ({ default: m.ObraForm })));
+const BoletoList = lazy(() => import('@/components/BoletoList').then(m => ({ default: m.BoletoList })));
+const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosOtimizadoV2').then(m => ({ default: m.ControlePagamentosOtimizadoV2 })));
+const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
+
 
 const Index = () => {
   return (
@@ -82,28 +84,38 @@ const Index = () => {
                 </TabsTrigger>
               </TabsList>
 
-              <TabsContent value="fornecedores" className="space-y-6 animate-fade-in">
-                <FornecedorForm />
-              </TabsContent>
+<TabsContent value="fornecedores" className="space-y-6 animate-fade-in">
+  <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
+    <FornecedorForm />
+  </Suspense>
+</TabsContent>
 
-              <TabsContent value="obras" className="space-y-6 animate-fade-in">
-                <ObraForm />
-              </TabsContent>
+<TabsContent value="obras" className="space-y-6 animate-fade-in">
+  <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
+    <ObraForm />
+  </Suspense>
+</TabsContent>
 
-              <TabsContent value="boletos" className="space-y-6 animate-fade-in">
-                <div className="space-y-6">
-                  <BoletoFormNovo />
-                  <BoletoList />
-                </div>
-              </TabsContent>
+<TabsContent value="boletos" className="space-y-6 animate-fade-in">
+  <Suspense fallback={<LoadingSkeleton type="filters" count={1} />}>
+    <div className="space-y-6">
+      <BoletoFormNovo />
+      <BoletoList />
+    </div>
+  </Suspense>
+</TabsContent>
 
-              <TabsContent value="pagamentos" className="space-y-6 animate-fade-in">
-                <ControlePagamentos />
-              </TabsContent>
+<TabsContent value="pagamentos" className="space-y-6 animate-fade-in">
+  <Suspense fallback={<LoadingSkeleton type="table" count={8} />}>
+    <ControlePagamentos />
+  </Suspense>
+</TabsContent>
 
-              <TabsContent value="dashboard" className="space-y-6 animate-fade-in">
-                <Dashboard />
-              </TabsContent>
+<TabsContent value="dashboard" className="space-y-6 animate-fade-in">
+  <Suspense fallback={<LoadingSkeleton type="cards" count={4} />}>
+    <Dashboard />
+  </Suspense>
+</TabsContent>
             </Tabs>
           </div>
         </div>
