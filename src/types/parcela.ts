@@ -10,6 +10,7 @@ export interface Parcela {
   id: string;
   boletoId: string;
   fornecedorId: string;
+  obraId?: string | null;
   numeroParcela: number;
   totalParcelas: number;
   valor: number;

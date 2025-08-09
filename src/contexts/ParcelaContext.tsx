@@ -89,6 +89,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         id: p.id,
         boletoId: p.boleto_id,
         fornecedorId: p.boletos.fornecedor_id,
+        obraId: p.boletos.obra_id,
         numeroParcela: p.numero_parcela,
         totalParcelas: p.boletos.quantidade_parcelas,
         valor: Number(p.valor_parcela),

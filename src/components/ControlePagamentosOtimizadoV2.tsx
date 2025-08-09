@@ -10,6 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useParcelas } from '@/contexts/ParcelaContext';
 import { useFornecedores } from '@/contexts/FornecedorContext';
+import { useObras } from '@/contexts/ObraContext';
 import { Filter, Edit, Trash2, Info, TrendingUp, DollarSign, AlertCircle, CheckCircle, Flag } from 'lucide-react';
 import { ParcelaStatus } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
@@ -65,11 +66,13 @@ SummaryCard.displayName = 'SummaryCard';
 const FilterSection = memo(({ 
   filtros, 
   setFiltros, 
-  fornecedorOptions 
+  fornecedorOptions,
+  obraOptions
 }: {
   filtros: any;
   setFiltros: (fn: (prev: any) => any) => void;
   fornecedorOptions: AutocompleteOption[];
+  obraOptions: AutocompleteOption[];
 }) => (
   <Card className="animate-slide-up hover-glow">
     <CardHeader>
@@ -105,6 +108,19 @@ const FilterSection = memo(({
             onValueChange={value => setFiltros(prev => ({ ...prev, fornecedor: value }))}
             placeholder="Selecione um fornecedor"
             searchPlaceholder="Buscar fornecedor..."
+            clearable
+            className="fast-transition"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label className="text-sm font-medium">Obra</Label>
+          <Autocomplete
+            options={obraOptions}
+            value={filtros.obra}
+            onValueChange={value => setFiltros(prev => ({ ...prev, obra: value || 'TODAS' }))}
+            placeholder="Selecione uma obra"
+            searchPlaceholder="Buscar obra..."
             clearable
             className="fast-transition"
           />
@@ -161,11 +177,13 @@ export function ControlePagamentosOtimizadoV2() {
     deleteParcela
   } = useParcelas();
   const { fornecedores } = useFornecedores();
+  const { obras } = useObras();
   const { toast } = useToast();
 
   const [filtros, setFiltros] = useState({
     status: 'TODOS',
     fornecedor: 'TODOS',
+    obra: 'TODAS',
     startDate: undefined as Date | undefined,
     endDate: undefined as Date | undefined,
     dateType: 'vencimento' as 'vencimento' | 'pagamento'
@@ -194,6 +212,7 @@ export function ControlePagamentosOtimizadoV2() {
     const filtradas = parcelas.filter(parcela => {
       if (filtros.status !== 'TODOS' && parcela.status !== filtros.status) return false;
       if (filtros.fornecedor !== 'TODOS' && parcela.fornecedorId !== filtros.fornecedor) return false;
+      if (filtros.obra !== 'TODAS' && parcela.obraId !== filtros.obra) return false;
 
       if (filtros.startDate || filtros.endDate) {
         const dataComparacao = filtros.dateType === 'vencimento' 
@@ -260,6 +279,19 @@ export function ControlePagamentosOtimizadoV2() {
       }))
     ];
   }, [parcelas, fornecedores]);
+
+  const obraOptions: AutocompleteOption[] = useMemo(() => {
+    if (!obras?.length) return [{ value: 'TODAS', label: 'Todas as obras' }];
+
+    return [
+      { value: 'TODAS', label: 'Todas as obras' },
+      ...obras.map(o => ({
+        value: o.id,
+        label: `${o.codigo || o.numero_unico || o.id.slice(0, 8)} - ${o.nome}`,
+        description: [o.endereco, o.responsavel ? `Resp: ${o.responsavel}` : ''].filter(Boolean).join(' • ')
+      }))
+    ];
+  }, [obras]);
 
   const abrirEdicao = useCallback((parcela: any) => {
     setEditandoParcela(parcela.id);
@@ -379,6 +411,7 @@ export function ControlePagamentosOtimizadoV2() {
           filtros={filtros}
           setFiltros={setFiltros}
           fornecedorOptions={fornecedorOptions}
+          obraOptions={obraOptions}
         />
       </Suspense>
 
