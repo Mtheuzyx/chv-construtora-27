@@ -80,6 +80,17 @@ export const MobileTable: React.FC<MobileTableProps> = ({
 
                 {/* Actions */}
                 <div className="flex gap-2 pt-2 border-t">
+                  {onView && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onView(item)}
+                      className="flex-1"
+                    >
+                      <Eye className="h-3 w-3 mr-1" />
+                      Ver
+                    </Button>
+                  )}
                   {onEdit && (
                     <Button
                       size="sm"

@@ -1,3 +1,10 @@
+export interface ObraInfo {
+  codigo?: string;
+  numero_unico?: string;
+  nome?: string;
+  endereco?: string;
+  responsavel?: string;
+}
 
 export interface Parcela {
   id: string;
@@ -10,9 +17,10 @@ export interface Parcela {
   dataPagamento?: string;
   status: ParcelaStatus;
   observacoes?: string;
+  obra?: ObraInfo;
+  boletoObservacoes?: string;
   createdAt: string;
 }
-
 export type ParcelaStatus = 
   | 'AGUARDANDO'
   | 'PAGO'

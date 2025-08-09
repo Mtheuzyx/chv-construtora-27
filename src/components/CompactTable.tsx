@@ -19,6 +19,7 @@ interface CompactTableProps {
   dadosEdicao: any;
   setDadosEdicao: (fn: (prev: any) => any) => void;
   salvarEdicao: () => void;
+  onViewDetails: (parcela: any) => void;
 }
 
 export const CompactTable = memo(({ 
@@ -28,7 +29,8 @@ export const CompactTable = memo(({
   handleDeleteParcela,
   dadosEdicao,
   setDadosEdicao,
-  salvarEdicao
+  salvarEdicao,
+  onViewDetails
 }: CompactTableProps) => (
   <Table>
     <TableHeader className="sticky top-0 bg-background z-10">
@@ -39,6 +41,7 @@ export const CompactTable = memo(({
         <TableHead className="w-28 text-xs p-2">Vencimento</TableHead>
         <TableHead className="w-28 text-xs p-2">Pagamento</TableHead>
         <TableHead className="w-24 text-xs p-2">Status</TableHead>
+        <TableHead className="w-28 text-xs p-2">Observações</TableHead>
         <TableHead className="w-20 text-xs p-2">Ações</TableHead>
       </TableRow>
     </TableHeader>
@@ -73,6 +76,15 @@ export const CompactTable = memo(({
           </TableCell>
           <TableCell className="p-2">
             <OptimizedStatusBadge status={parcela.status} size="sm" />
+          </TableCell>
+          <TableCell className="p-2">
+            {(parcela.observacoes || parcela.obra) ? (
+              <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onViewDetails(parcela)}>
+                Detalhes
+              </Button>
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
           </TableCell>
           <TableCell className="p-2">
             <div className="flex gap-1">

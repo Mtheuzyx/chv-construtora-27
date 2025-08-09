@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useParcelas } from '@/contexts/ParcelaContext';
 import { useFornecedores } from '@/contexts/FornecedorContext';
-import { Filter, Edit, Trash2, Info, TrendingUp, DollarSign, AlertCircle, CheckCircle } from 'lucide-react';
+import { Filter, Edit, Trash2, Info, TrendingUp, DollarSign, AlertCircle, CheckCircle, Flag } from 'lucide-react';
 import { ParcelaStatus } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/utils/formatters';
@@ -177,6 +177,7 @@ export function ControlePagamentosOtimizadoV2() {
     valor: 0,
     status: '' as ParcelaStatus
   });
+  const [detalhesParcela, setDetalhesParcela] = useState<any | null>(null);
 
   const getFornecedorNome = useCallback((fornecedorId: string) => {
     const fornecedor = fornecedores.find(f => f.id === fornecedorId);
@@ -402,14 +403,15 @@ export function ControlePagamentosOtimizadoV2() {
               <p className="text-sm">Ajuste os filtros para visualizar os dados</p>
             </div>
           ) : isMobile ? (
-            <MobileTable 
-              data={parcelasFiltradas}
-              onEdit={abrirEdicao}
-              onDelete={(item: any) => handleDeleteParcela(item.id, getFornecedorNome(item.fornecedorId), item.numeroParcela)}
-              getStatusBadge={(status: ParcelaStatus) => <OptimizedStatusBadge status={status} showIcon />}
-              getFornecedorNome={getFornecedorNome}
-              type="parcelas"
-            />
+              <MobileTable 
+                data={parcelasFiltradas}
+                onEdit={abrirEdicao}
+                onDelete={(item: any) => handleDeleteParcela(item.id, getFornecedorNome(item.fornecedorId), item.numeroParcela)}
+                onView={(item: any) => setDetalhesParcela(item)}
+                getStatusBadge={(status: ParcelaStatus) => <OptimizedStatusBadge status={status} showIcon />}
+                getFornecedorNome={getFornecedorNome}
+                type="parcelas"
+              />
           ) : parcelasFiltradas.length > 50 ? (
             <div className="scroll-container" style={{ maxHeight: 'calc(100vh - 300px)' }}>
               <VirtualizedTable
@@ -455,10 +457,10 @@ export function ControlePagamentosOtimizadoV2() {
                       <OptimizedStatusBadge status={parcela.status} showIcon />
                     </TableCell>
                     <TableCell>
-                      {parcela.observacoes ? (
-                        <span className="text-sm text-muted-foreground">
-                          {parcela.observacoes}
-                        </span>
+                      {(parcela.observacoes || parcela.obra) ? (
+                        <Button size="sm" variant="outline" className="hover-lift text-xs" onClick={() => setDetalhesParcela(parcela)}>
+                          <Flag className="h-3 w-3 mr-1" /> Detalhes
+                        </Button>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
@@ -566,11 +568,41 @@ export function ControlePagamentosOtimizadoV2() {
                 dadosEdicao={dadosEdicao}
                 setDadosEdicao={setDadosEdicao}
                 salvarEdicao={salvarEdicao}
+                onViewDetails={(p: any) => setDetalhesParcela(p)}
               />
             </div>
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={!!detalhesParcela} onOpenChange={(open) => { if (!open) setDetalhesParcela(null); }}>
+        <DialogContent className="sm:max-w-lg animate-scale-in">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" /> Detalhes do Boleto
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 text-sm">
+            {detalhesParcela?.obra && (
+              <div className="rounded-md border p-3">
+                <div className="font-semibold mb-1">Obra</div>
+                <div><span className="text-muted-foreground">Código:</span> {detalhesParcela.obra.codigo || detalhesParcela.obra.numero_unico || '-'}</div>
+                <div><span className="text-muted-foreground">Nome:</span> {detalhesParcela.obra.nome || '-'}</div>
+                <div><span className="text-muted-foreground">Endereço:</span> {detalhesParcela.obra.endereco || '-'}</div>
+                <div><span className="text-muted-foreground">Responsável:</span> {detalhesParcela.obra.responsavel || '-'}</div>
+              </div>
+            )}
+            {(detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes) && (
+              <div className="rounded-md border p-3">
+                <div className="font-semibold mb-1">Observações</div>
+                <div className="text-muted-foreground whitespace-pre-wrap">
+                  {detalhesParcela.observacoes || detalhesParcela.boletoObservacoes}
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

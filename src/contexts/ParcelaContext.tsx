@@ -96,9 +96,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         dataPagamento: p.data_pagamento || undefined,
         status: calculateParcelaStatus(p.vencimento, p.data_pagamento, p.status_pagamento),
         observacoes: (() => { const existing = p.observacoes || p.boletos.observacoes; const o = p.boletos?.obras; const obraInfo = o ? [o.codigo || o.numero_unico, o.nome, o.endereco, o.responsavel ? `Resp: ${o.responsavel}` : ''].filter(Boolean).join(' - ') : ''; return obraInfo ? `${existing ? `${existing} | ` : ''}Obra: ${obraInfo}` : existing; })(),
+        obra: p.boletos?.obras ? {
+          codigo: p.boletos.obras.codigo,
+          numero_unico: p.boletos.obras.numero_unico,
+          nome: p.boletos.obras.nome,
+          endereco: p.boletos.obras.endereco,
+          responsavel: p.boletos.obras.responsavel,
+        } : undefined,
+        boletoObservacoes: p.boletos?.observacoes || undefined,
         createdAt: new Date().toISOString()
       })) || [];
-
       console.log('✅ Parcelas formatadas:', parcelasFormatadas);
       console.log('📈 Total de parcelas carregadas:', parcelasFormatadas.length);
 
