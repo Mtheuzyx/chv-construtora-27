@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useEffect, memo } from 'react';
+import React, { useMemo, useState, useEffect, memo, useRef } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent } from '@/components/ui/card';
 
@@ -20,13 +20,23 @@ export function VirtualizedTable<T>({
   keyExtractor
 }: VirtualizedTableProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
+  const scrollRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (rafRef.current != null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+    };
+  }, []);
 
   const visibleRange = useMemo(() => {
-    const startIndex = Math.floor(scrollTop / rowHeight);
-    const endIndex = Math.min(
-      startIndex + Math.ceil(containerHeight / rowHeight) + 1,
-      data.length
-    );
+    const overscan = 5;
+    const baseStart = Math.floor(scrollTop / rowHeight);
+    const visibleCount = Math.ceil(containerHeight / rowHeight) + 1;
+    const startIndex = Math.max(0, baseStart - overscan);
+    const endIndex = Math.min(data.length, baseStart + visibleCount + overscan);
     return { startIndex, endIndex };
   }, [scrollTop, rowHeight, containerHeight, data.length]);
 
@@ -38,12 +48,18 @@ export function VirtualizedTable<T>({
   const offsetY = visibleRange.startIndex * rowHeight;
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
+    scrollRef.current = e.currentTarget.scrollTop;
+    if (rafRef.current == null) {
+      rafRef.current = requestAnimationFrame(() => {
+        setScrollTop(scrollRef.current);
+        rafRef.current = null;
+      });
+    }
   };
 
   return (
     <div
-      className="overflow-auto"
+      className="overflow-auto scroll-smooth"
       style={{ height: containerHeight }}
       onScroll={handleScroll}
     >
@@ -52,7 +68,7 @@ export function VirtualizedTable<T>({
           <TableHeader className="sticky top-0 bg-background z-10">
             {headers}
           </TableHeader>
-          <TableBody style={{ transform: `translateY(${offsetY}px)` }}>
+          <TableBody style={{ transform: `translateY(${offsetY}px)`, willChange: 'transform' }}>
             {visibleItems.map((item, index) => (
               <TableRow key={keyExtractor(item, visibleRange.startIndex + index)}>
                 {renderRow(item, visibleRange.startIndex + index)}

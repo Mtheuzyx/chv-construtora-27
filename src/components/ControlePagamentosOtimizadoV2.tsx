@@ -492,7 +492,7 @@ export function ControlePagamentosOtimizadoV2() {
                     <TableCell>
                       {(parcela.observacoes || parcela.obra) ? (
                         <Button size="sm" variant="outline" className="hover-lift text-xs" onClick={() => setDetalhesParcela(parcela)}>
-                          <Flag className="h-3 w-3 mr-1" /> Detalhes
+                          <Flag className="h-3 w-3 mr-1" /> Observações
                         </Button>
                       ) : (
                         <span className="text-muted-foreground">-</span>

@@ -80,7 +80,7 @@ export const CompactTable = memo(({
           <TableCell className="p-2">
             {(parcela.observacoes || parcela.obra) ? (
               <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onViewDetails(parcela)}>
-                Detalhes
+                Observações
               </Button>
             ) : (
               <span className="text-muted-foreground">-</span>
