@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -185,4 +185,4 @@ export const MobileTable: React.FC<MobileTableProps> = ({
   );
 };
 
-export default MobileTable;
+export default memo(MobileTable);

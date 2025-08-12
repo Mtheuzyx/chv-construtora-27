@@ -7,6 +7,7 @@ import { ObraProvider } from '@/contexts/ObraContext';
 import { Users, FileText, CreditCard, BarChart3, Building2 } from 'lucide-react';
 
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const FornecedorForm = lazy(() => import('@/components/FornecedorForm').then(m => ({ default: m.FornecedorForm })));
 const BoletoFormNovo = lazy(() => import('@/components/BoletoFormNovo').then(m => ({ default: m.BoletoFormNovo })));
@@ -85,33 +86,43 @@ const Index = () => {
               </TabsList>
 
 <TabsContent value="fornecedores" className="space-y-6 animate-fade-in">
-  <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
-    <FornecedorForm />
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
+      <FornecedorForm />
+    </Suspense>
+  </ErrorBoundary>
 </TabsContent>
 
 <TabsContent value="obras" className="space-y-6 animate-fade-in">
-  <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
-    <ObraForm />
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
+      <ObraForm />
+    </Suspense>
+  </ErrorBoundary>
 </TabsContent>
 
 <TabsContent value="boletos" className="space-y-6 animate-fade-in">
-  <Suspense fallback={<LoadingSkeleton type="filters" count={1} />}>
-      <BoletoFormNovo />
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingSkeleton type="filters" count={1} />}>
+        <BoletoFormNovo />
+    </Suspense>
+  </ErrorBoundary>
 </TabsContent>
 
 <TabsContent value="pagamentos" className="space-y-6 animate-fade-in">
-  <Suspense fallback={<LoadingSkeleton type="table" count={8} />}>
-    <ControlePagamentos />
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingSkeleton type="table" count={8} />}>
+      <ControlePagamentos />
+    </Suspense>
+  </ErrorBoundary>
 </TabsContent>
 
 <TabsContent value="dashboard" className="space-y-6 animate-fade-in">
-  <Suspense fallback={<LoadingSkeleton type="cards" count={4} />}>
-    <Dashboard />
-  </Suspense>
+  <ErrorBoundary>
+    <Suspense fallback={<LoadingSkeleton type="cards" count={4} />}>
+      <Dashboard />
+    </Suspense>
+  </ErrorBoundary>
 </TabsContent>
             </Tabs>
           </div>

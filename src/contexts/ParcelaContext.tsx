@@ -406,18 +406,28 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [calculateParcelaStatus]);
 
-  // Executa atualização automática diariamente
-  useEffect(() => {
-    // Atualiza status imediatamente ao carregar
-    updateAllParcelasStatus();
+// Executa atualização automática diária, agendada para a meia-noite
+useEffect(() => {
+  // Atualiza status imediatamente ao carregar
+  updateAllParcelasStatus();
 
-    // Configura atualização automática a cada minuto para detectar mudanças de dia
-    const interval = setInterval(() => {
+  let timeoutId: number;
+  const scheduleNextRun = () => {
+    const now = new Date();
+    const next = new Date(now);
+    next.setHours(24, 0, 0, 0); // próxima meia-noite
+    const msUntilNext = next.getTime() - now.getTime();
+
+    timeoutId = window.setTimeout(() => {
       updateAllParcelasStatus();
-    }, 60000); // 1 minuto
+      scheduleNextRun(); // reagenda para o próximo dia
+    }, msUntilNext);
+  };
 
-    return () => clearInterval(interval);
-  }, [updateAllParcelasStatus]);
+  scheduleNextRun();
+
+  return () => clearTimeout(timeoutId);
+}, [updateAllParcelasStatus]);
 
   const contextValue = useMemo(() => ({ 
     parcelas, 

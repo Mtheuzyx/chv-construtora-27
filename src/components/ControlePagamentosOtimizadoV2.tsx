@@ -202,36 +202,31 @@ export function ControlePagamentosOtimizadoV2() {
     return fornecedor ? fornecedor.nome : 'Fornecedor não encontrado';
   }, [fornecedores]);
 
-  const parcelasFiltradas = useMemo(() => {
-    console.log('🔍 Aplicando filtros...');
-    console.log('📋 Total de parcelas antes do filtro:', parcelas?.length || 0);
-    console.log('🎯 Filtros aplicados:', filtros);
-    
-    if (!parcelas?.length) return [];
-    
-    const filtradas = parcelas.filter(parcela => {
-      if (filtros.status !== 'TODOS' && parcela.status !== filtros.status) return false;
-      if (filtros.fornecedor !== 'TODOS' && parcela.fornecedorId !== filtros.fornecedor) return false;
-      if (filtros.obra !== 'TODAS' && parcela.obraId !== filtros.obra) return false;
+const parcelasFiltradas = useMemo(() => {
+  if (!parcelas?.length) return [];
 
-      if (filtros.startDate || filtros.endDate) {
-        const dataComparacao = filtros.dateType === 'vencimento' 
-          ? new Date(parcela.dataVencimento + 'T00:00:00')
-          : parcela.dataPagamento 
-            ? new Date(parcela.dataPagamento + 'T00:00:00')
-            : null;
+  const filtradas = parcelas.filter(parcela => {
+    if (filtros.status !== 'TODOS' && parcela.status !== filtros.status) return false;
+    if (filtros.fornecedor !== 'TODOS' && parcela.fornecedorId !== filtros.fornecedor) return false;
+    if (filtros.obra !== 'TODAS' && parcela.obraId !== filtros.obra) return false;
 
-        if (!dataComparacao && filtros.dateType === 'pagamento') return false;
-        if (filtros.startDate && dataComparacao && dataComparacao < filtros.startDate) return false;
-        if (filtros.endDate && dataComparacao && dataComparacao > filtros.endDate) return false;
-      }
+    if (filtros.startDate || filtros.endDate) {
+      const dataComparacao = filtros.dateType === 'vencimento' 
+        ? new Date(parcela.dataVencimento + 'T00:00:00')
+        : parcela.dataPagamento 
+          ? new Date(parcela.dataPagamento + 'T00:00:00')
+          : null;
 
-      return true;
-    });
-    
-    console.log('✅ Parcelas após filtros:', filtradas.length);
-    return filtradas;
-  }, [parcelas, filtros]);
+      if (!dataComparacao && filtros.dateType === 'pagamento') return false;
+      if (filtros.startDate && dataComparacao && dataComparacao < filtros.startDate) return false;
+      if (filtros.endDate && dataComparacao && dataComparacao > filtros.endDate) return false;
+    }
+
+    return true;
+  });
+
+  return filtradas;
+}, [parcelas, filtros]);
 
   const resumoValores = useMemo(() => {
     if (!parcelas?.length) return { valorTotalPrevisto: 0, valorJaPago: 0, valorEmAtraso: 0, valorVenceHoje: 0 };
