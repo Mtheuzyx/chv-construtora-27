@@ -419,9 +419,7 @@ export function ControlePagamentosOtimizado() {
                       <span className="text-sm text-muted-foreground">
                         {parcela.observacoes}
                       </span>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
+                    ) : null}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
@@ -548,8 +546,8 @@ export function ControlePagamentosOtimizado() {
                         {getFornecedorNome(parcela.fornecedorId)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs">
-                          {parcela.numeroParcela}ª de {parcela.totalParcelas}
+                        <Badge variant="secondary" className="text-xs" title={`Parcela ${parcela.numeroParcela} de ${parcela.totalParcelas}`}>
+                          Parcela {parcela.numeroParcela}/{parcela.totalParcelas}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">
@@ -572,9 +570,7 @@ export function ControlePagamentosOtimizado() {
                           <span className="text-sm text-muted-foreground">
                             {parcela.observacoes}
                           </span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">

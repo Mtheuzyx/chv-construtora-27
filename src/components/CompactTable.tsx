@@ -52,8 +52,8 @@ export const CompactTable = memo(({
             {getFornecedorNome(parcela.fornecedorId)}
           </TableCell>
           <TableCell className="p-2">
-            <Badge variant="secondary" className="text-xs px-1 py-0 h-5">
-              {parcela.numeroParcela}/{parcela.totalParcelas}
+            <Badge variant="secondary" className="text-xs px-1 py-0 h-5" title={`Parcela ${parcela.numeroParcela} de ${parcela.totalParcelas}`}>
+              Parcela {parcela.numeroParcela}/{parcela.totalParcelas}
             </Badge>
           </TableCell>
           <TableCell className="font-medium text-xs p-2">
@@ -78,13 +78,11 @@ export const CompactTable = memo(({
             <OptimizedStatusBadge status={parcela.status} size="sm" />
           </TableCell>
           <TableCell className="p-2">
-            {(parcela.observacoes || parcela.obra) ? (
+            {(parcela.observacoes || parcela.boletoObservacoes) ? (
               <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onViewDetails(parcela)}>
                 Observações
               </Button>
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
+            ) : null}
           </TableCell>
           <TableCell className="p-2">
             <div className="flex gap-1">

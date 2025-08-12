@@ -465,8 +465,8 @@ const parcelasFiltradas = useMemo(() => {
                       {getFornecedorNome(parcela.fornecedorId)}
                     </TableCell>
                     <TableCell>
-                      <Badge variant="secondary" className="text-xs hover-lift">
-                        {parcela.numeroParcela}ª de {parcela.totalParcelas}
+                      <Badge variant="secondary" className="text-xs hover-lift" title={`Parcela ${parcela.numeroParcela} de ${parcela.totalParcelas}`}>
+                        Parcela {parcela.numeroParcela}/{parcela.totalParcelas}
                       </Badge>
                     </TableCell>
                     <TableCell className="font-medium">
@@ -485,13 +485,11 @@ const parcelasFiltradas = useMemo(() => {
                       <OptimizedStatusBadge status={parcela.status} showIcon />
                     </TableCell>
                     <TableCell>
-                      {(parcela.observacoes || parcela.obra) ? (
+                      {(parcela.observacoes || parcela.boletoObservacoes) ? (
                         <Button size="sm" variant="outline" className="hover-lift text-xs" onClick={() => setDetalhesParcela(parcela)}>
                           <Flag className="h-3 w-3 mr-1" /> Observações
                         </Button>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">

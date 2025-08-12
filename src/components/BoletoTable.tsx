@@ -145,7 +145,7 @@ export default function BoletoTable() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">
-                      {boleto.observacoes || '-'}
+                      {boleto.observacoes ?? ''}
                     </TableCell>
                     <TableCell>
                       <EditPaymentDate boleto={boleto} />
