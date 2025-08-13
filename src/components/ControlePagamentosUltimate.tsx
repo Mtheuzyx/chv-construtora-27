@@ -99,16 +99,16 @@ const VirtualScrollTable = memo(({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
-  const [containerHeight, setContainerHeight] = useState(600);
+  const [containerHeight, setContainerHeight] = useState(500);
   
-  const ITEM_HEIGHT = 56; // Altura fixa de cada linha
-  const OVERSCAN = 5; // Itens extras para renderizar fora da view
+  const ITEM_HEIGHT = 64; // Altura fixa de cada linha (aumentada para melhor legibilidade)
+  const OVERSCAN = 3; // Itens extras para renderizar fora da view (reduzido)
 
   useEffect(() => {
     const updateHeight = () => {
       if (containerRef.current) {
-        const maxHeight = window.innerHeight - 400; // Altura da tela menos espaço para header/footer
-        setContainerHeight(Math.min(maxHeight, 600));
+        // Altura fixa para evitar mudanças durante scroll
+        setContainerHeight(500);
       }
     };
 
@@ -126,94 +126,122 @@ const VirtualScrollTable = memo(({
   }, [scrollTop, containerHeight, parcelas.length]);
 
   const visibleParcelas = useMemo(() => {
-    return parcelas.slice(visibleRange.start, visibleRange.end);
+    return parcelas.slice(visibleRange.start, visibleRange.end).map((parcela, index) => ({
+      ...parcela,
+      virtualIndex: visibleRange.start + index
+    }));
   }, [parcelas, visibleRange]);
 
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    setScrollTop(e.currentTarget.scrollTop);
+    const newScrollTop = e.currentTarget.scrollTop;
+    requestAnimationFrame(() => {
+      setScrollTop(newScrollTop);
+    });
   }, []);
 
   const totalHeight = parcelas.length * ITEM_HEIGHT;
   const offsetY = visibleRange.start * ITEM_HEIGHT;
 
+  if (parcelas.length === 0) {
+    return (
+      <div className="border rounded-lg p-8 text-center text-muted-foreground">
+        Nenhuma parcela encontrada
+      </div>
+    );
+  }
+
   return (
-    <div 
-      ref={containerRef}
-      className="overflow-auto border rounded-lg"
-      style={{ height: containerHeight }}
-      onScroll={handleScroll}
-    >
-      <div style={{ height: totalHeight, position: 'relative' }}>
+    <div className="border rounded-lg bg-background">
+      {/* Header fixo */}
+      <div className="border-b bg-muted/50 sticky top-0 z-10">
         <Table>
-          <TableHeader className="sticky top-0 bg-background z-20 shadow-sm">
+          <TableHeader>
             <TableRow>
-              <TableHead className="w-[200px]">Fornecedor</TableHead>
-              <TableHead className="w-[100px]">Parcela</TableHead>
-              <TableHead className="w-[120px]">Valor</TableHead>
-              <TableHead className="w-[120px]">Vencimento</TableHead>
-              <TableHead className="w-[120px]">Pagamento</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
-              <TableHead className="w-[200px]">Observações</TableHead>
-              <TableHead className="w-[100px]">Ações</TableHead>
+              <TableHead className="w-[200px] h-12">Fornecedor</TableHead>
+              <TableHead className="w-[100px] h-12">Parcela</TableHead>
+              <TableHead className="w-[120px] h-12">Valor</TableHead>
+              <TableHead className="w-[120px] h-12">Vencimento</TableHead>
+              <TableHead className="w-[120px] h-12">Pagamento</TableHead>
+              <TableHead className="w-[120px] h-12">Status</TableHead>
+              <TableHead className="w-[200px] h-12">Observações</TableHead>
+              <TableHead className="w-[100px] h-12">Ações</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody style={{ transform: `translateY(${offsetY}px)` }}>
-            {visibleParcelas.map((parcela, index) => (
-              <TableRow 
-                key={parcela.id} 
-                className="hover:bg-muted/50 transition-colors duration-150"
-                style={{ height: ITEM_HEIGHT }}
-              >
-                <TableCell className="font-medium">
-                  {getFornecedorNome(parcela.fornecedorId)}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline" className="text-xs">
-                    {parcela.numeroParcela}/{parcela.totalParcelas}
-                  </Badge>
-                </TableCell>
-                <TableCell className="font-medium">
-                  {formatCurrency(parcela.valor)}
-                </TableCell>
-                <TableCell>
-                  {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
-                </TableCell>
-                <TableCell>
-                  {parcela.dataPagamento ? 
-                    new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR') : 
-                    <span className="text-muted-foreground">-</span>
-                  }
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={parcela.status} />
-                </TableCell>
-                <TableCell className="max-w-[200px] truncate">
-                  {parcela.observacoes || <span className="text-muted-foreground">-</span>}
-                </TableCell>
-                <TableCell>
-                  <div className="flex gap-1">
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => onEdit(parcela)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => onDelete(parcela.id, getFornecedorNome(parcela.fornecedorId), parcela.numeroParcela)}
-                      className="h-8 w-8 p-0 hover:bg-red-50 hover:border-red-200"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
         </Table>
+      </div>
+      
+      {/* Container de scroll com virtualização */}
+      <div 
+        ref={containerRef}
+        className="overflow-auto scroll-smooth"
+        style={{ height: containerHeight }}
+        onScroll={handleScroll}
+      >
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          <Table>
+            <TableBody 
+              style={{ 
+                transform: `translateY(${offsetY}px)`,
+                willChange: 'transform'
+              }}
+            >
+              {visibleParcelas.map((parcela) => (
+                <TableRow 
+                  key={parcela.id} 
+                  className="hover:bg-muted/50 transition-colors duration-150"
+                  style={{ height: ITEM_HEIGHT }}
+                >
+                  <TableCell className="font-medium w-[200px]">
+                    {getFornecedorNome(parcela.fornecedorId)}
+                  </TableCell>
+                  <TableCell className="w-[100px]">
+                    <Badge variant="outline" className="text-xs">
+                      {parcela.numeroParcela}/{parcela.totalParcelas}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="font-medium w-[120px]">
+                    {formatCurrency(parcela.valor)}
+                  </TableCell>
+                  <TableCell className="w-[120px]">
+                    {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                  </TableCell>
+                  <TableCell className="w-[120px]">
+                    {parcela.dataPagamento ? 
+                      new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR') : 
+                      <span className="text-muted-foreground">-</span>
+                    }
+                  </TableCell>
+                  <TableCell className="w-[120px]">
+                    <StatusBadge status={parcela.status} />
+                  </TableCell>
+                  <TableCell className="w-[200px] max-w-[200px] truncate">
+                    {parcela.observacoes || <span className="text-muted-foreground">-</span>}
+                  </TableCell>
+                  <TableCell className="w-[100px]">
+                    <div className="flex gap-1">
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => onEdit(parcela)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        onClick={() => onDelete(parcela.id, getFornecedorNome(parcela.fornecedorId), parcela.numeroParcela)}
+                        className="h-8 w-8 p-0 hover:bg-red-50 hover:border-red-200"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
