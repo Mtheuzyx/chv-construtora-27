@@ -13,7 +13,7 @@ const FornecedorForm = lazy(() => import('@/components/FornecedorForm').then(m =
 const BoletoFormNovo = lazy(() => import('@/components/BoletoFormNovo').then(m => ({ default: m.BoletoFormNovo })));
 const ObraForm = lazy(() => import('@/components/ObraForm').then(m => ({ default: m.ObraForm })));
 // BoletoList removido para manter layout original
-const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosOtimizadoV2').then(m => ({ default: m.ControlePagamentosOtimizadoV2 })));
+const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosUltimate').then(m => ({ default: m.ControlePagamentosUltimate })));
 const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
 
 
