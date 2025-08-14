@@ -155,18 +155,23 @@ export function ControlePagamentosOtimizado() {
     if (!editandoParcela) return;
     
     try {
+      // Executar todas as atualizações em paralelo para melhor performance
+      const promises = [];
+      
       // Atualizar vencimento
-      await updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento);
+      promises.push(updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento));
       
       // Atualizar valor
-      await updateParcelaValor(editandoParcela, dadosEdicao.valor);
+      promises.push(updateParcelaValor(editandoParcela, dadosEdicao.valor));
       
       // Atualizar pagamento ou status
       if (dadosEdicao.dataPagamento) {
-        await updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento);
+        promises.push(updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento));
       } else {
-        await updateParcelaStatus(editandoParcela, dadosEdicao.status);
+        promises.push(updateParcelaStatus(editandoParcela, dadosEdicao.status));
       }
+      
+      await Promise.all(promises);
       
       setEditandoParcela(null);
       setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus });
@@ -371,163 +376,10 @@ export function ControlePagamentosOtimizado() {
               getFornecedorNome={getFornecedorNome}
               type="parcelas"
             />
-          ) : parcelasFiltradas.length > 100 ? (
-            <VirtualizedTable
-              data={parcelasFiltradas}
-              rowHeight={60}
-              containerHeight={600}
-              keyExtractor={(item) => item.id}
-              headers={
-                <TableRow>
-                  <TableHead className="w-32">Fornecedor</TableHead>
-                  <TableHead className="w-24">Parcela</TableHead>
-                  <TableHead className="w-20">Valor</TableHead>
-                  <TableHead className="w-28">Vencimento</TableHead>
-                  <TableHead className="w-28">Pagamento</TableHead>
-                  <TableHead className="w-24">Status</TableHead>
-                  <TableHead className="w-32">Observações</TableHead>
-                  <TableHead className="w-20">Ações</TableHead>
-                </TableRow>
-              }
-              renderRow={(parcela) => (
-                <>
-                  <TableCell className="font-medium">
-                    {getFornecedorNome(parcela.fornecedorId)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="secondary" className="text-xs">
-                      {parcela.numeroParcela}ª de {parcela.totalParcelas}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {formatCurrency(parcela.valor)}
-                  </TableCell>
-                  <TableCell>
-                    {new Date(parcela.dataVencimento + 'T00:00:00').toLocaleDateString('pt-BR')}
-                  </TableCell>
-                  <TableCell>
-                    {parcela.dataPagamento ? 
-                      new Date(parcela.dataPagamento + 'T00:00:00').toLocaleDateString('pt-BR') : 
-                      <span className="text-muted-foreground">-</span>
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <StatusBadge status={parcela.status} />
-                  </TableCell>
-                  <TableCell>
-                    {parcela.observacoes ? (
-                      <span className="text-sm text-muted-foreground">
-                        {parcela.observacoes}
-                      </span>
-                    ) : null}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button size="sm" variant="outline" onClick={() => abrirEdicao(parcela)}>
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <Edit className="h-5 w-5" />
-                              Editar Parcela
-                            </DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <div>
-                              <Label>Fornecedor</Label>
-                              <Input value={getFornecedorNome(parcela.fornecedorId)} disabled className="bg-muted" />
-                            </div>
-
-                            <div>
-                              <Label>Valor da Parcela</Label>
-                              <Input 
-                                type="number" 
-                                step="0.01"
-                                value={dadosEdicao.valor} 
-                                onChange={e => setDadosEdicao(prev => ({ ...prev, valor: parseFloat(e.target.value) || 0 }))}
-                              />
-                            </div>
-
-                            <div>
-                              <Label>Data de Vencimento</Label>
-                              <Input 
-                                type="date" 
-                                value={dadosEdicao.dataVencimento} 
-                                onChange={e => setDadosEdicao(prev => ({ ...prev, dataVencimento: e.target.value }))} 
-                              />
-                            </div>
-
-                            <div>
-                              <Label>Data de Pagamento</Label>
-                              <Input 
-                                type="date" 
-                                value={dadosEdicao.dataPagamento} 
-                                onChange={e => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))} 
-                              />
-                            </div>
-
-                            <div>
-                              <Label>Status</Label>
-                              <Select 
-                                value={dadosEdicao.status} 
-                                onValueChange={value => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}
-                                disabled={!dadosEdicao.dataPagamento}
-                              >
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {dadosEdicao.dataPagamento ? (
-                                    <>
-                                      <SelectItem value="PAGO">Pago</SelectItem>
-                                      <SelectItem value="PAGO_COM_ATRASO">Pago c/ Atraso</SelectItem>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
-                                      <SelectItem value="VENCIDO">Vencido</SelectItem>
-                                      <SelectItem value="VENCE_HOJE">Vence Hoje</SelectItem>
-                                    </>
-                                  )}
-                                </SelectContent>
-                              </Select>
-                              {!dadosEdicao.dataPagamento && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Status é atualizado automaticamente. Para alterar manualmente, registre o pagamento primeiro.
-                                </p>
-                              )}
-                            </div>
-
-                            <div className="flex gap-2 pt-2">
-                              <Button onClick={salvarEdicao} className="flex-1">
-                                Salvar Alterações
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        onClick={() => handleDeleteParcela(parcela.id, getFornecedorNome(parcela.fornecedorId), parcela.numeroParcela)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </>
-              )}
-            />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="h-[600px] overflow-auto border rounded-lg bg-card">
               <Table>
-                <TableHeader>
+                <TableHeader className="sticky top-0 bg-background z-10 border-b">
                   <TableRow>
                     <TableHead className="w-32">Fornecedor</TableHead>
                     <TableHead className="w-24">Parcela</TableHead>
@@ -541,13 +393,13 @@ export function ControlePagamentosOtimizado() {
                 </TableHeader>
                 <TableBody>
                   {parcelasFiltradas.map((parcela) => (
-                    <TableRow key={parcela.id} className="hover:bg-muted/50">
+                    <TableRow key={parcela.id} className="hover:bg-muted/50 transition-colors">
                       <TableCell className="font-medium">
                         {getFornecedorNome(parcela.fornecedorId)}
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary" className="text-xs" title={`Parcela ${parcela.numeroParcela} de ${parcela.totalParcelas}`}>
-                          Parcela {parcela.numeroParcela}/{parcela.totalParcelas}
+                        <Badge variant="secondary" className="text-xs">
+                          {parcela.numeroParcela}ª de {parcela.totalParcelas}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-medium">
@@ -570,17 +422,19 @@ export function ControlePagamentosOtimizado() {
                           <span className="text-sm text-muted-foreground">
                             {parcela.observacoes}
                           </span>
-                        ) : null}
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1">
                           <Dialog>
                             <DialogTrigger asChild>
                               <Button size="sm" variant="outline" onClick={() => abrirEdicao(parcela)}>
                                 <Edit className="h-4 w-4" />
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-md">
+                            <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle className="flex items-center gap-2">
                                   <Edit className="h-5 w-5" />
@@ -608,7 +462,7 @@ export function ControlePagamentosOtimizado() {
                                   <Input 
                                     type="date" 
                                     value={dadosEdicao.dataVencimento} 
-                                    onChange={e => setDadosEdicao(prev => ({ ...prev, dataVencimento: e.target.value }))} 
+                                    onChange={e => setDadosEdicao(prev => ({ ...prev, dataVencimento: e.target.value }))}
                                   />
                                 </div>
 
@@ -617,43 +471,29 @@ export function ControlePagamentosOtimizado() {
                                   <Input 
                                     type="date" 
                                     value={dadosEdicao.dataPagamento} 
-                                    onChange={e => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))} 
+                                    onChange={e => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))}
                                   />
                                 </div>
 
-                                <div>
-                                  <Label>Status</Label>
-                                  <Select 
-                                    value={dadosEdicao.status} 
-                                    onValueChange={value => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}
-                                    disabled={!dadosEdicao.dataPagamento}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {dadosEdicao.dataPagamento ? (
-                                        <>
-                                          <SelectItem value="PAGO">Pago</SelectItem>
-                                          <SelectItem value="PAGO_COM_ATRASO">Pago c/ Atraso</SelectItem>
-                                        </>
-                                      ) : (
-                                        <>
-                                          <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
-                                          <SelectItem value="VENCIDO">Vencido</SelectItem>
-                                          <SelectItem value="VENCE_HOJE">Vence Hoje</SelectItem>
-                                        </>
-                                      )}
-                                    </SelectContent>
-                                  </Select>
-                                  {!dadosEdicao.dataPagamento && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                      Status é atualizado automaticamente. Para alterar manualmente, registre o pagamento primeiro.
-                                    </p>
-                                  )}
-                                </div>
+                                {!dadosEdicao.dataPagamento && (
+                                  <div>
+                                    <Label>Status</Label>
+                                    <Select value={dadosEdicao.status} onValueChange={value => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                      <SelectContent>
+                                        <SelectItem value="AGUARDANDO">Aguardando</SelectItem>
+                                        <SelectItem value="VENCE_HOJE">Vence Hoje</SelectItem>
+                                        <SelectItem value="VENCIDO">Vencido</SelectItem>
+                                        <SelectItem value="PAGO">Pago</SelectItem>
+                                        <SelectItem value="PAGO_COM_ATRASO">Pago c/ Atraso</SelectItem>
+                                      </SelectContent>
+                                    </Select>
+                                  </div>
+                                )}
 
-                                <div className="flex gap-2 pt-2">
+                                <div className="flex gap-2 pt-4">
                                   <Button onClick={salvarEdicao} className="flex-1">
                                     Salvar Alterações
                                   </Button>
@@ -661,7 +501,7 @@ export function ControlePagamentosOtimizado() {
                               </div>
                             </DialogContent>
                           </Dialog>
-
+                          
                           <Button 
                             size="sm" 
                             variant="outline" 
