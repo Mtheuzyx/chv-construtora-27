@@ -126,6 +126,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Melhorar comportamento de scroll */
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Corrigir problemas de scroll em diferentes navegadores */
+  html {
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
@@ -172,7 +182,7 @@ All colors MUST be HSL.
     animation: scaleIn 0.2s ease-out;
   }
   
-  /* Optimized scroll behavior */
+  /* Otimizar comportamento de scroll */
   .scroll-smooth {
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
@@ -183,22 +193,62 @@ All colors MUST be HSL.
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--border)) transparent;
     overscroll-behavior: contain;
+    /* Melhorar performance de scroll */
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
   }
   
   .scroll-container::-webkit-scrollbar {
     width: 8px;
+    height: 8px;
   }
   
   .scroll-container::-webkit-scrollbar-track {
     background: transparent;
+    border-radius: 4px;
   }
   
   .scroll-container::-webkit-scrollbar-thumb {
     background: hsl(var(--border));
     border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: content-box;
   }
   
   .scroll-container::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+  
+  .scroll-container::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Scroll horizontal para tabelas responsivas */
+  .scroll-horizontal {
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .scroll-horizontal::-webkit-scrollbar {
+    height: 8px;
+  }
+  
+  .scroll-horizontal::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 4px;
+  }
+  
+  .scroll-horizontal::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+    border: 1px solid transparent;
+    background-clip: content-box;
+  }
+  
+  .scroll-horizontal::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground));
   }
   
@@ -252,6 +302,26 @@ All colors MUST be HSL.
 /* Skeleton loading states */
 .skeleton {
   @apply loading-shimmer rounded-md bg-muted;
+}
+
+/* Melhorar comportamento de scroll em dispositivos móveis */
+@media (max-width: 768px) {
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+  
+  /* Evitar zoom em inputs em iOS */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 a[href*="lovable.dev"], iframe[src*="lovable.dev"], div[style*="Edit with Lovable"], .lovable-badge { 
