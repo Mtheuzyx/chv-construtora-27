@@ -14,7 +14,176 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      boletos: {
+        Row: {
+          created_at: string | null
+          forma_pagamento: string
+          fornecedor_id: string
+          id: string
+          obra_id: string
+          observacoes: string | null
+          quantidade_parcelas: number
+          updated_at: string | null
+          valor_total: number
+          vencimento_primeira: string
+        }
+        Insert: {
+          created_at?: string | null
+          forma_pagamento: string
+          fornecedor_id: string
+          id?: string
+          obra_id: string
+          observacoes?: string | null
+          quantidade_parcelas?: number
+          updated_at?: string | null
+          valor_total: number
+          vencimento_primeira: string
+        }
+        Update: {
+          created_at?: string | null
+          forma_pagamento?: string
+          fornecedor_id?: string
+          id?: string
+          obra_id?: string
+          observacoes?: string | null
+          quantidade_parcelas?: number
+          updated_at?: string | null
+          valor_total?: number
+          vencimento_primeira?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "boletos_fornecedor_id_fkey"
+            columns: ["fornecedor_id"]
+            isOneToOne: false
+            referencedRelation: "fornecedores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "boletos_obra_id_fkey"
+            columns: ["obra_id"]
+            isOneToOne: false
+            referencedRelation: "obras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fornecedores: {
+        Row: {
+          cpf_cnpj: string
+          created_at: string | null
+          email: string | null
+          endereco: string | null
+          id: string
+          nome: string
+          telefone: string | null
+          tipo: string
+          updated_at: string | null
+        }
+        Insert: {
+          cpf_cnpj: string
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+          tipo: string
+          updated_at?: string | null
+        }
+        Update: {
+          cpf_cnpj?: string
+          created_at?: string | null
+          email?: string | null
+          endereco?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+          tipo?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      obras: {
+        Row: {
+          ativa: boolean | null
+          cidade: string | null
+          codigo: string
+          created_at: string | null
+          endereco: string | null
+          estado: string | null
+          id: string
+          nome: string
+          updated_at: string | null
+        }
+        Insert: {
+          ativa?: boolean | null
+          cidade?: string | null
+          codigo: string
+          created_at?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome: string
+          updated_at?: string | null
+        }
+        Update: {
+          ativa?: boolean | null
+          cidade?: string | null
+          codigo?: string
+          created_at?: string | null
+          endereco?: string | null
+          estado?: string | null
+          id?: string
+          nome?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      parcelas: {
+        Row: {
+          boleto_id: string
+          created_at: string | null
+          id: string
+          numero_parcela: number
+          pagamento: string | null
+          status: string
+          updated_at: string | null
+          valor: number
+          vencimento: string
+        }
+        Insert: {
+          boleto_id: string
+          created_at?: string | null
+          id?: string
+          numero_parcela: number
+          pagamento?: string | null
+          status?: string
+          updated_at?: string | null
+          valor: number
+          vencimento: string
+        }
+        Update: {
+          boleto_id?: string
+          created_at?: string | null
+          id?: string
+          numero_parcela?: number
+          pagamento?: string | null
+          status?: string
+          updated_at?: string | null
+          valor?: number
+          vencimento?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcelas_boleto_id_fkey"
+            columns: ["boleto_id"]
+            isOneToOne: false
+            referencedRelation: "boletos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
