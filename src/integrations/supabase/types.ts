@@ -10,44 +10,41 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.5"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
       boletos: {
         Row: {
-          created_at: string | null
+          data_cadastro: string
           forma_pagamento: string
           fornecedor_id: string
           id: string
-          obra_id: string
+          obra_id: string | null
           observacoes: string | null
           quantidade_parcelas: number
-          updated_at: string | null
           valor_total: number
           vencimento_primeira: string
         }
         Insert: {
-          created_at?: string | null
+          data_cadastro?: string
           forma_pagamento: string
           fornecedor_id: string
           id?: string
-          obra_id: string
+          obra_id?: string | null
           observacoes?: string | null
           quantidade_parcelas?: number
-          updated_at?: string | null
           valor_total: number
           vencimento_primeira: string
         }
         Update: {
-          created_at?: string | null
+          data_cadastro?: string
           forma_pagamento?: string
           fornecedor_id?: string
           id?: string
-          obra_id?: string
+          obra_id?: string | null
           observacoes?: string | null
           quantidade_parcelas?: number
-          updated_at?: string | null
           valor_total?: number
           vencimento_primeira?: string
         }
@@ -71,107 +68,113 @@ export type Database = {
       fornecedores: {
         Row: {
           cpf_cnpj: string
-          created_at: string | null
+          data_cadastro: string
           email: string | null
           endereco: string | null
           id: string
           nome: string
           telefone: string | null
-          tipo: string
-          updated_at: string | null
         }
         Insert: {
           cpf_cnpj: string
-          created_at?: string | null
+          data_cadastro?: string
           email?: string | null
           endereco?: string | null
           id?: string
           nome: string
           telefone?: string | null
-          tipo: string
-          updated_at?: string | null
         }
         Update: {
           cpf_cnpj?: string
-          created_at?: string | null
+          data_cadastro?: string
           email?: string | null
           endereco?: string | null
           id?: string
           nome?: string
           telefone?: string | null
-          tipo?: string
-          updated_at?: string | null
         }
         Relationships: []
       }
       obras: {
         Row: {
-          ativa: boolean | null
-          cidade: string | null
-          codigo: string
-          created_at: string | null
+          codigo: string | null
+          created_at: string
+          data_inicio: string | null
           endereco: string | null
-          estado: string | null
           id: string
           nome: string
-          updated_at: string | null
+          numero_unico: string | null
+          outros_dados: string | null
+          proprietario: string | null
+          responsavel: string | null
+          status: string | null
+          telefone: string | null
+          tipo: string | null
+          updated_at: string
         }
         Insert: {
-          ativa?: boolean | null
-          cidade?: string | null
-          codigo: string
-          created_at?: string | null
+          codigo?: string | null
+          created_at?: string
+          data_inicio?: string | null
           endereco?: string | null
-          estado?: string | null
           id?: string
           nome: string
-          updated_at?: string | null
+          numero_unico?: string | null
+          outros_dados?: string | null
+          proprietario?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
         }
         Update: {
-          ativa?: boolean | null
-          cidade?: string | null
-          codigo?: string
-          created_at?: string | null
+          codigo?: string | null
+          created_at?: string
+          data_inicio?: string | null
           endereco?: string | null
-          estado?: string | null
           id?: string
           nome?: string
-          updated_at?: string | null
+          numero_unico?: string | null
+          outros_dados?: string | null
+          proprietario?: string | null
+          responsavel?: string | null
+          status?: string | null
+          telefone?: string | null
+          tipo?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
       parcelas: {
         Row: {
           boleto_id: string
-          created_at: string | null
+          data_pagamento: string | null
           id: string
           numero_parcela: number
-          pagamento: string | null
-          status: string
-          updated_at: string | null
-          valor: number
+          observacoes: string | null
+          status_pagamento: string
+          valor_parcela: number
           vencimento: string
         }
         Insert: {
           boleto_id: string
-          created_at?: string | null
+          data_pagamento?: string | null
           id?: string
           numero_parcela: number
-          pagamento?: string | null
-          status?: string
-          updated_at?: string | null
-          valor: number
+          observacoes?: string | null
+          status_pagamento?: string
+          valor_parcela: number
           vencimento: string
         }
         Update: {
           boleto_id?: string
-          created_at?: string | null
+          data_pagamento?: string | null
           id?: string
           numero_parcela?: number
-          pagamento?: string | null
-          status?: string
-          updated_at?: string | null
-          valor?: number
+          observacoes?: string | null
+          status_pagamento?: string
+          valor_parcela?: number
           vencimento?: string
         }
         Relationships: [
