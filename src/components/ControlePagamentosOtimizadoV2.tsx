@@ -323,8 +323,8 @@ const parcelasFiltradas = useMemo(() => {
         { value: 'TODAS', label: 'Todas as obras' },
         ...obras.map(o => ({
           value: o.id,
-          label: `${o.codigo || o.numero_unico || o.id.slice(0, 8)} - ${o.nome}`,
-          description: [o.endereco, o.responsavel ? `Resp: ${o.responsavel}` : ''].filter(Boolean).join(' • ')
+          label: `${o.codigo || o.id.slice(0, 8)} - ${o.nome}`,
+          description: [o.endereco, o.cidade, o.estado].filter(Boolean).join(' • ')
         }))
       ];
     } catch (error) {

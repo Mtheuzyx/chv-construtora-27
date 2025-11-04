@@ -1,9 +1,9 @@
 export interface ObraInfo {
   codigo?: string;
-  numero_unico?: string;
   nome?: string;
   endereco?: string;
-  responsavel?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 export interface Parcela {

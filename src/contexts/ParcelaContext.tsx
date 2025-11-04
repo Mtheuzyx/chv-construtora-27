@@ -63,10 +63,10 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
             obra_id,
             obras(
               codigo,
-              numero_unico,
               nome,
               endereco,
-              responsavel
+              cidade,
+              estado
             )
           )
         `)
@@ -85,24 +85,24 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const parcelasFormatadas: Parcela[] = parcelasData?.map(p => ({
+      const parcelasFormatadas: Parcela[] = (parcelasData as any)?.map((p: any) => ({
         id: p.id,
         boletoId: p.boleto_id,
         fornecedorId: p.boletos.fornecedor_id,
         obraId: p.boletos.obra_id,
         numeroParcela: p.numero_parcela,
         totalParcelas: p.boletos.quantidade_parcelas,
-        valor: Number(p.valor_parcela),
+        valor: Number(p.valor),
         dataVencimento: p.vencimento,
-        dataPagamento: p.data_pagamento || undefined,
-        status: calculateParcelaStatus(p.vencimento, p.data_pagamento, p.status_pagamento),
-        observacoes: (() => { const existing = p.observacoes || p.boletos.observacoes; const o = p.boletos?.obras; const obraInfo = o ? [o.codigo || o.numero_unico, o.nome, o.endereco, o.responsavel ? `Resp: ${o.responsavel}` : ''].filter(Boolean).join(' - ') : ''; return obraInfo ? `${existing ? `${existing} | ` : ''}Obra: ${obraInfo}` : existing; })(),
+        dataPagamento: p.pagamento || undefined,
+        status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
+        observacoes: (() => { const existing = p.observacoes || p.boletos.observacoes; const o = p.boletos?.obras; const obraInfo = o ? [o.codigo, o.nome, o.endereco, o.cidade, o.estado].filter(Boolean).join(' - ') : ''; return obraInfo ? `${existing ? `${existing} | ` : ''}Obra: ${obraInfo}` : existing; })(),
         obra: p.boletos?.obras ? {
           codigo: p.boletos.obras.codigo,
-          numero_unico: p.boletos.obras.numero_unico,
           nome: p.boletos.obras.nome,
           endereco: p.boletos.obras.endereco,
-          responsavel: p.boletos.obras.responsavel,
+          cidade: p.boletos.obras.cidade,
+          estado: p.boletos.obras.estado,
         } : undefined,
         boletoObservacoes: p.boletos?.observacoes || undefined,
         createdAt: new Date().toISOString()
@@ -175,11 +175,11 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
 
   const updateParcelaPagamento = useCallback(async (parcelaId: string, dataPagamento: string) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('parcelas')
         .update({ 
-          data_pagamento: dataPagamento,
-          status_pagamento: 'Pago'
+          pagamento: dataPagamento,
+          status: 'pago'
         })
         .eq('id', parcelaId);
 
@@ -264,9 +264,9 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
 
   const updateParcelaValor = useCallback(async (parcelaId: string, novoValor: number) => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('parcelas')
-        .update({ valor_parcela: novoValor })
+        .update({ valor: novoValor })
         .eq('id', parcelaId);
 
       if (error) {
@@ -307,16 +307,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const updateParcelaStatus = useCallback(async (parcelaId: string, novoStatus: ParcelaStatus) => {
     try {
       const statusMapping = {
-        'AGUARDANDO': 'Pendente',
-        'PAGO': 'Pago',
-        'PAGO_COM_ATRASO': 'Pago com Atraso',
-        'VENCIDO': 'Vencido',
-        'VENCE_HOJE': 'Pendente'
+        'AGUARDANDO': 'pendente',
+        'PAGO': 'pago',
+        'PAGO_COM_ATRASO': 'pago',
+        'VENCIDO': 'vencido',
+        'VENCE_HOJE': 'pendente'
       };
 
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('parcelas')
-        .update({ status_pagamento: statusMapping[novoStatus] })
+        .update({ status: statusMapping[novoStatus] })
         .eq('id', parcelaId);
 
       if (error) {

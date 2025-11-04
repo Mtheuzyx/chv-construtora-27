@@ -5,16 +5,11 @@ import { useToast } from '@/hooks/use-toast';
 export interface Obra {
   id: string;
   codigo: string;
-  numero_unico: string;
   nome: string;
   endereco?: string;
-  responsavel?: string;
-  telefone?: string;
-  proprietario?: string;
-  data_inicio?: string;
-  status?: string;
-  tipo?: string;
-  outros_dados?: string;
+  cidade?: string;
+  estado?: string;
+  ativa?: boolean;
   created_at: string;
   updated_at?: string;
 }
@@ -22,8 +17,8 @@ export interface Obra {
 interface ObraContextType {
   obras: Obra[];
   loading: boolean;
-  addObra: (obra: Omit<Obra, 'id' | 'codigo' | 'numero_unico' | 'created_at' | 'updated_at'>) => Promise<void>;
-  updateObra: (id: string, changes: Partial<Omit<Obra, 'id' | 'codigo' | 'numero_unico' | 'created_at' | 'updated_at'>>) => Promise<void>;
+  addObra: (obra: Omit<Obra, 'id' | 'codigo' | 'created_at' | 'updated_at'>) => Promise<void>;
+  updateObra: (id: string, changes: Partial<Omit<Obra, 'id' | 'codigo' | 'created_at' | 'updated_at'>>) => Promise<void>;
   deleteObra: (id: string) => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -55,23 +50,19 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   }, [toast]);
 
   const addObra = useCallback(async (
-    obra: Omit<Obra, 'id' | 'codigo' | 'numero_unico' | 'created_at' | 'updated_at'>
+    obra: Omit<Obra, 'id' | 'codigo' | 'created_at' | 'updated_at'>
   ) => {
     try {
       setLoading(true);
       const { error } = await (supabase as any)
         .from('obras')
         .insert({
-          // codigo e numero_unico serão gerados no trigger
           nome: obra.nome,
+          codigo: (obra as any).codigo || `OBRA-${Date.now()}`,
           endereco: obra.endereco,
-          responsavel: obra.responsavel,
-          telefone: obra.telefone,
-          proprietario: obra.proprietario,
-          data_inicio: obra.data_inicio ?? null,
-          status: obra.status,
-          tipo: obra.tipo,
-          outros_dados: obra.outros_dados,
+          cidade: (obra as any).cidade,
+          estado: (obra as any).estado,
+          ativa: (obra as any).ativa ?? true,
         });
 
       if (error) throw error;
@@ -88,7 +79,7 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
 
   const updateObra = useCallback(async (
     id: string,
-    changes: Partial<Omit<Obra, 'id' | 'codigo' | 'numero_unico' | 'created_at' | 'updated_at'>>
+    changes: Partial<Omit<Obra, 'id' | 'codigo' | 'created_at' | 'updated_at'>>
   ) => {
     try {
       setLoading(true);

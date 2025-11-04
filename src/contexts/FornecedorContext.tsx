@@ -26,7 +26,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
         const { data, error } = await supabase
           .from('fornecedores')
           .select('*')
-          .order('data_cadastro', { ascending: false });
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error('Erro ao carregar fornecedores:', error);
@@ -39,7 +39,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
         }
 
         if (data) {
-          const fornecedoresFormatados = data.map(item => ({
+          const fornecedoresFormatados = data.map((item: any) => ({
             id: item.id,
             nome: item.nome,
             cpfCnpj: item.cpf_cnpj,
@@ -47,7 +47,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
             telefone: item.telefone || '',
             endereco: item.endereco || '',
             tipo: 'Fornecedor' as const,
-            createdAt: item.data_cadastro
+            createdAt: item.created_at
           }));
           setFornecedores(fornecedoresFormatados);
         }
@@ -92,7 +92,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
           telefone: data.telefone || '',
           endereco: data.endereco || '',
           tipo: 'Fornecedor',
-          createdAt: data.data_cadastro
+          createdAt: (data as any).created_at
         };
         setFornecedores(prev => [novoFornecedor, ...prev]);
       }
