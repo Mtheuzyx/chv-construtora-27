@@ -58,7 +58,6 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           boletos!inner(
             fornecedor_id,
             forma_pagamento,
-            observacoes,
             quantidade_parcelas,
             obra_id
           )
@@ -89,9 +88,9 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         dataVencimento: p.vencimento,
         dataPagamento: p.pagamento || undefined,
         status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
-        observacoes: p.observacoes || p.boletos.observacoes,
+        observacoes: p.observacoes || undefined,
         obra: undefined,
-        boletoObservacoes: p.boletos?.observacoes || undefined,
+        boletoObservacoes: undefined,
         createdAt: new Date().toISOString()
       })) || [];
       console.log('✅ Parcelas formatadas:', parcelasFormatadas);
@@ -121,8 +120,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         forma_pagamento: boletoParcelas.formaPagamento,
         valor_total: valorTotal,
         quantidade_parcelas: boletoParcelas.quantidadeParcelas,
-        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
-        observacoes: boletoParcelas.observacoes
+        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira
       };
       
       // Só adiciona obra_id se for fornecido
