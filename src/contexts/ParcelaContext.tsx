@@ -50,7 +50,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       console.log('🔄 Iniciando carregamento de parcelas...');
       
-      // Buscar parcelas e boletos com join
+      // Buscar parcelas e boletos
       const { data: parcelasData, error } = await supabase
         .from('parcelas')
         .select(`
@@ -60,14 +60,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
             forma_pagamento,
             observacoes,
             quantidade_parcelas,
-            obra_id,
-            obras(
-              codigo,
-              nome,
-              endereco,
-              cidade,
-              estado
-            )
+            obra_id
           )
         `)
         .order('vencimento', { ascending: true });
@@ -96,14 +89,8 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         dataVencimento: p.vencimento,
         dataPagamento: p.pagamento || undefined,
         status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
-        observacoes: (() => { const existing = p.observacoes || p.boletos.observacoes; const o = p.boletos?.obras; const obraInfo = o ? [o.codigo, o.nome, o.endereco, o.cidade, o.estado].filter(Boolean).join(' - ') : ''; return obraInfo ? `${existing ? `${existing} | ` : ''}Obra: ${obraInfo}` : existing; })(),
-        obra: p.boletos?.obras ? {
-          codigo: p.boletos.obras.codigo,
-          nome: p.boletos.obras.nome,
-          endereco: p.boletos.obras.endereco,
-          cidade: p.boletos.obras.cidade,
-          estado: p.boletos.obras.estado,
-        } : undefined,
+        observacoes: p.observacoes || p.boletos.observacoes,
+        obra: undefined,
         boletoObservacoes: p.boletos?.observacoes || undefined,
         createdAt: new Date().toISOString()
       })) || [];
@@ -129,17 +116,23 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       
       // Primeiro criar o boleto
       const valorTotal = boletoParcelas.valorParcela * boletoParcelas.quantidadeParcelas;
+      const insertData: any = {
+        fornecedor_id: boletoParcelas.fornecedorId,
+        forma_pagamento: boletoParcelas.formaPagamento,
+        valor_total: valorTotal,
+        quantidade_parcelas: boletoParcelas.quantidadeParcelas,
+        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
+        observacoes: boletoParcelas.observacoes
+      };
+      
+      // Só adiciona obra_id se for fornecido
+      if (boletoParcelas.obraId) {
+        insertData.obra_id = boletoParcelas.obraId;
+      }
+
       const { data: boletoData, error: boletoError } = await supabase
         .from('boletos')
-        .insert({
-          fornecedor_id: boletoParcelas.fornecedorId,
-          forma_pagamento: boletoParcelas.formaPagamento,
-          valor_total: valorTotal,
-          quantidade_parcelas: boletoParcelas.quantidadeParcelas,
-          vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
-          observacoes: boletoParcelas.observacoes,
-          obra_id: boletoParcelas.obraId ?? null
-        })
+        .insert(insertData)
         .select()
         .single();
 

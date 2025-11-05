@@ -38,12 +38,17 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
         .select('*')
         .order('created_at', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.warn('Tabela obras não encontrada ou sem acesso:', error);
+        setObras([]);
+        setLoading(false);
+        return;
+      }
 
       setObras((data || []) as Obra[]);
     } catch (error) {
-      console.error('Erro ao carregar obras:', error);
-      toast({ title: 'Erro', description: 'Não foi possível carregar as obras.', variant: 'destructive' });
+      console.warn('Erro ao carregar obras:', error);
+      setObras([]);
     } finally {
       setLoading(false);
     }
@@ -65,7 +70,12 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
           ativa: (obra as any).ativa ?? true,
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao cadastrar obra:', error);
+        toast({ title: 'Erro', description: 'Tabela obras não está disponível no banco de dados.', variant: 'destructive' });
+        setLoading(false);
+        return;
+      }
 
       toast({ title: 'Obra cadastrada', description: 'A obra foi cadastrada com sucesso.' });
       await loadObras();
