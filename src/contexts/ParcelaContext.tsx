@@ -58,8 +58,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           boletos!inner(
             fornecedor_id,
             forma_pagamento,
-            quantidade_parcelas,
-            obra_id
+            quantidade_parcelas
           )
         `)
         .order('vencimento', { ascending: true });
@@ -81,7 +80,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         id: p.id,
         boletoId: p.boleto_id,
         fornecedorId: p.boletos.fornecedor_id,
-        obraId: p.boletos.obra_id,
+        obraId: undefined,
         numeroParcela: p.numero_parcela,
         totalParcelas: p.boletos.quantidade_parcelas,
         valor: Number(p.valor),
@@ -115,18 +114,13 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       
       // Primeiro criar o boleto
       const valorTotal = boletoParcelas.valorParcela * boletoParcelas.quantidadeParcelas;
-      const insertData: any = {
+      const insertData = {
         fornecedor_id: boletoParcelas.fornecedorId,
         forma_pagamento: boletoParcelas.formaPagamento,
         valor_total: valorTotal,
         quantidade_parcelas: boletoParcelas.quantidadeParcelas,
         vencimento_primeira: boletoParcelas.dataVencimentoPrimeira
       };
-      
-      // Só adiciona obra_id se for fornecido
-      if (boletoParcelas.obraId) {
-        insertData.obra_id = boletoParcelas.obraId;
-      }
 
       const { data: boletoData, error: boletoError } = await supabase
         .from('boletos')
