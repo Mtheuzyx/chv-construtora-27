@@ -58,7 +58,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           boletos!inner(
             fornecedor_id,
             forma_pagamento,
-            quantidade_parcelas
+            quantidade_parcelas,
+            obra_id,
+            observacoes,
+            obras(
+              codigo,
+              nome,
+              endereco,
+              cidade,
+              estado
+            )
           )
         `)
         .order('vencimento', { ascending: true });
@@ -80,7 +89,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         id: p.id,
         boletoId: p.boleto_id,
         fornecedorId: p.boletos.fornecedor_id,
-        obraId: undefined,
+        obraId: p.boletos.obra_id,
         numeroParcela: p.numero_parcela,
         totalParcelas: p.boletos.quantidade_parcelas,
         valor: Number(p.valor),
@@ -88,9 +97,15 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         dataPagamento: p.pagamento || undefined,
         status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
         observacoes: p.observacoes || undefined,
-        obra: undefined,
-        boletoObservacoes: undefined,
-        createdAt: new Date().toISOString()
+        obra: p.boletos.obras ? {
+          codigo: p.boletos.obras.codigo,
+          nome: p.boletos.obras.nome,
+          endereco: p.boletos.obras.endereco,
+          cidade: p.boletos.obras.cidade,
+          estado: p.boletos.obras.estado
+        } : undefined,
+        boletoObservacoes: p.boletos.observacoes,
+        createdAt: p.created_at
       })) || [];
       console.log('✅ Parcelas formatadas:', parcelasFormatadas);
       console.log('📈 Total de parcelas carregadas:', parcelasFormatadas.length);
@@ -114,13 +129,19 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       
       // Primeiro criar o boleto
       const valorTotal = boletoParcelas.valorParcela * boletoParcelas.quantidadeParcelas;
-      const insertData = {
+      const insertData: any = {
         fornecedor_id: boletoParcelas.fornecedorId,
         forma_pagamento: boletoParcelas.formaPagamento,
         valor_total: valorTotal,
         quantidade_parcelas: boletoParcelas.quantidadeParcelas,
-        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira
+        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
+        observacoes: boletoParcelas.observacoes
       };
+      
+      // Só adiciona obra_id se for fornecido
+      if (boletoParcelas.obraId) {
+        insertData.obra_id = boletoParcelas.obraId;
+      }
 
       const { data: boletoData, error: boletoError } = await supabase
         .from('boletos')
