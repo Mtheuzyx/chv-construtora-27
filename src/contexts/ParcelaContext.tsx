@@ -50,7 +50,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       setLoading(true);
       console.log('🔄 Iniciando carregamento de parcelas...');
       
-      // Buscar parcelas e boletos
+      // Buscar parcelas e boletos sem relação de obras (por enquanto)
       const { data: parcelasData, error } = await supabase
         .from('parcelas')
         .select(`
@@ -60,14 +60,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
             forma_pagamento,
             quantidade_parcelas,
             obra_id,
-            observacoes,
-            obras(
-              codigo,
-              nome,
-              endereco,
-              cidade,
-              estado
-            )
+            observacoes
           )
         `)
         .order('vencimento', { ascending: true });
@@ -85,28 +78,41 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      const parcelasFormatadas: Parcela[] = (parcelasData as any)?.map((p: any) => ({
-        id: p.id,
-        boletoId: p.boleto_id,
-        fornecedorId: p.boletos.fornecedor_id,
-        obraId: p.boletos.obra_id,
-        numeroParcela: p.numero_parcela,
-        totalParcelas: p.boletos.quantidade_parcelas,
-        valor: Number(p.valor),
-        dataVencimento: p.vencimento,
-        dataPagamento: p.pagamento || undefined,
-        status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
-        observacoes: p.observacoes || undefined,
-        obra: p.boletos.obras ? {
-          codigo: p.boletos.obras.codigo,
-          nome: p.boletos.obras.nome,
-          endereco: p.boletos.obras.endereco,
-          cidade: p.boletos.obras.cidade,
-          estado: p.boletos.obras.estado
-        } : undefined,
-        boletoObservacoes: p.boletos.observacoes,
-        createdAt: p.created_at
-      })) || [];
+      // Buscar obras separadamente
+      const { data: obrasData } = await supabase
+        .from('obras')
+        .select('*');
+
+      // Criar um mapa de obras por ID
+      const obrasMap = new Map(obrasData?.map(obra => [obra.id, obra]) || []);
+
+      const parcelasFormatadas: Parcela[] = (parcelasData as any)?.map((p: any) => {
+        const obraId = p.boletos.obra_id;
+        const obra = obraId ? obrasMap.get(obraId) : null;
+        
+        return {
+          id: p.id,
+          boletoId: p.boleto_id,
+          fornecedorId: p.boletos.fornecedor_id,
+          obraId: obraId,
+          numeroParcela: p.numero_parcela,
+          totalParcelas: p.boletos.quantidade_parcelas,
+          valor: Number(p.valor),
+          dataVencimento: p.vencimento,
+          dataPagamento: p.pagamento || undefined,
+          status: calculateParcelaStatus(p.vencimento, p.pagamento, p.status),
+          observacoes: p.observacoes || undefined,
+          obra: obra ? {
+            codigo: obra.codigo,
+            nome: obra.nome,
+            endereco: obra.endereco,
+            cidade: obra.cidade,
+            estado: obra.estado
+          } : undefined,
+          boletoObservacoes: p.boletos.observacoes,
+          createdAt: p.created_at
+        };
+      }) || [];
       console.log('✅ Parcelas formatadas:', parcelasFormatadas);
       console.log('📈 Total de parcelas carregadas:', parcelasFormatadas.length);
 

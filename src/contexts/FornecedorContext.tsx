@@ -46,7 +46,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
             email: item.email || '',
             telefone: item.telefone || '',
             endereco: item.endereco || '',
-            tipo: 'Fornecedor' as const,
+            tipo: (item.tipo || 'Fornecedor') as 'Fornecedor' | 'Cliente',
             createdAt: item.created_at
           }));
           setFornecedores(fornecedoresFormatados);
@@ -68,7 +68,8 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
           cpf_cnpj: fornecedorData.cpfCnpj,
           email: fornecedorData.email || null,
           telefone: fornecedorData.telefone || null,
-          endereco: fornecedorData.endereco || null
+          endereco: fornecedorData.endereco || null,
+          tipo: fornecedorData.tipo || 'Fornecedor'
         }])
         .select()
         .single();
@@ -91,7 +92,7 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
           email: data.email || '',
           telefone: data.telefone || '',
           endereco: data.endereco || '',
-          tipo: 'Fornecedor',
+          tipo: (data.tipo || 'Fornecedor') as 'Fornecedor' | 'Cliente',
           createdAt: (data as any).created_at
         };
         setFornecedores(prev => [novoFornecedor, ...prev]);
@@ -115,7 +116,8 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
           cpf_cnpj: fornecedorData.cpfCnpj,
           email: fornecedorData.email || null,
           telefone: fornecedorData.telefone || null,
-          endereco: fornecedorData.endereco || null
+          endereco: fornecedorData.endereco || null,
+          tipo: fornecedorData.tipo || 'Fornecedor'
         })
         .eq('id', id);
 
