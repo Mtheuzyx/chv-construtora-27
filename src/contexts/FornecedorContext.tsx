@@ -2,7 +2,6 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { Fornecedor, FornecedorFormData } from '@/types/fornecedor';
 import { cleanDocument } from '@/utils/formatters';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface FornecedorContextType {
@@ -19,88 +18,49 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const { toast } = useToast();
 
-  // Carregar fornecedores do Supabase na inicialização
+  // Carregar fornecedores do localStorage na inicialização
   useEffect(() => {
-    const loadFornecedores = async () => {
+    const loadFornecedores = () => {
       try {
-        const { data, error } = await supabase
-          .from('fornecedores')
-          .select('*')
-          .order('created_at', { ascending: false });
-
-        if (error) {
-          console.error('Erro ao carregar fornecedores:', error);
-          toast({
-            title: "Erro ao carregar dados",
-            description: "Não foi possível carregar os fornecedores",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        if (data) {
-          const fornecedoresFormatados = data.map((item: any) => ({
-            id: item.id,
-            nome: item.nome,
-            cpfCnpj: item.cpf_cnpj,
-            email: item.email || '',
-            telefone: item.telefone || '',
-            endereco: item.endereco || '',
-            tipo: (item.tipo || 'Fornecedor') as 'Fornecedor' | 'Cliente',
-            createdAt: item.created_at
-          }));
-          setFornecedores(fornecedoresFormatados);
+        const stored = localStorage.getItem('fornecedores');
+        if (stored) {
+          setFornecedores(JSON.parse(stored));
         }
       } catch (err) {
-        console.error('Erro inesperado ao carregar fornecedores:', err);
+        console.error('Erro ao carregar fornecedores:', err);
       }
     };
 
     loadFornecedores();
-  }, [toast]);
+  }, []);
 
   const addFornecedor = useCallback(async (fornecedorData: FornecedorFormData) => {
     try {
-      const { data, error } = await supabase
-        .from('fornecedores')
-        .insert([{
-          nome: fornecedorData.nome,
-          cpf_cnpj: fornecedorData.cpfCnpj,
-          email: fornecedorData.email || null,
-          telefone: fornecedorData.telefone || null,
-          endereco: fornecedorData.endereco || null,
-          tipo: fornecedorData.tipo || 'Fornecedor'
-        }])
-        .select()
-        .single();
-
-      if (error) {
-        console.error('Erro ao adicionar fornecedor:', error);
-        toast({
-          title: "Erro ao salvar",
-          description: "Não foi possível salvar o fornecedor",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      if (data) {
-        const novoFornecedor: Fornecedor = {
-          id: data.id,
-          nome: data.nome,
-          cpfCnpj: data.cpf_cnpj,
-          email: data.email || '',
-          telefone: data.telefone || '',
-          endereco: data.endereco || '',
-          tipo: (data.tipo || 'Fornecedor') as 'Fornecedor' | 'Cliente',
-          createdAt: (data as any).created_at
-        };
-        setFornecedores(prev => [novoFornecedor, ...prev]);
-      }
-    } catch (err) {
-      console.error('Erro inesperado ao adicionar fornecedor:', err);
+      const novoFornecedor: Fornecedor = {
+        id: crypto.randomUUID(),
+        nome: fornecedorData.nome,
+        cpfCnpj: fornecedorData.cpfCnpj,
+        email: fornecedorData.email || '',
+        telefone: fornecedorData.telefone || '',
+        endereco: fornecedorData.endereco || '',
+        tipo: fornecedorData.tipo || 'Fornecedor',
+        createdAt: new Date().toISOString()
+      };
+      
+      setFornecedores(prev => {
+        const updated = [novoFornecedor, ...prev];
+        localStorage.setItem('fornecedores', JSON.stringify(updated));
+        return updated;
+      });
+      
       toast({
-        title: "Erro inesperado",
+        title: "Sucesso",
+        description: "Fornecedor cadastrado com sucesso",
+      });
+    } catch (err) {
+      console.error('Erro ao adicionar fornecedor:', err);
+      toast({
+        title: "Erro",
         description: "Ocorreu um erro ao salvar o fornecedor",
         variant: "destructive"
       });
@@ -109,39 +69,24 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const editFornecedor = useCallback(async (id: string, fornecedorData: FornecedorFormData) => {
     try {
-      const { error } = await supabase
-        .from('fornecedores')
-        .update({
-          nome: fornecedorData.nome,
-          cpf_cnpj: fornecedorData.cpfCnpj,
-          email: fornecedorData.email || null,
-          telefone: fornecedorData.telefone || null,
-          endereco: fornecedorData.endereco || null,
-          tipo: fornecedorData.tipo || 'Fornecedor'
-        })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erro ao editar fornecedor:', error);
-        toast({
-          title: "Erro ao editar",
-          description: "Não foi possível editar o fornecedor",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setFornecedores(prev => 
-        prev.map(fornecedor => 
+      setFornecedores(prev => {
+        const updated = prev.map(fornecedor => 
           fornecedor.id === id 
             ? { ...fornecedor, ...fornecedorData }
             : fornecedor
-        )
-      );
-    } catch (err) {
-      console.error('Erro inesperado ao editar fornecedor:', err);
+        );
+        localStorage.setItem('fornecedores', JSON.stringify(updated));
+        return updated;
+      });
+      
       toast({
-        title: "Erro inesperado",
+        title: "Sucesso",
+        description: "Fornecedor atualizado com sucesso",
+      });
+    } catch (err) {
+      console.error('Erro ao editar fornecedor:', err);
+      toast({
+        title: "Erro",
         description: "Ocorreu um erro ao editar o fornecedor",
         variant: "destructive"
       });
@@ -150,26 +95,20 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const deleteFornecedor = useCallback(async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('fornecedores')
-        .delete()
-        .eq('id', id);
-
-      if (error) {
-        console.error('Erro ao deletar fornecedor:', error);
-        toast({
-          title: "Erro ao excluir",
-          description: "Não foi possível excluir o fornecedor",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      setFornecedores(prev => prev.filter(fornecedor => fornecedor.id !== id));
-    } catch (err) {
-      console.error('Erro inesperado ao deletar fornecedor:', err);
+      setFornecedores(prev => {
+        const updated = prev.filter(fornecedor => fornecedor.id !== id);
+        localStorage.setItem('fornecedores', JSON.stringify(updated));
+        return updated;
+      });
+      
       toast({
-        title: "Erro inesperado",
+        title: "Sucesso",
+        description: "Fornecedor excluído com sucesso",
+      });
+    } catch (err) {
+      console.error('Erro ao deletar fornecedor:', err);
+      toast({
+        title: "Erro",
         description: "Ocorreu um erro ao excluir o fornecedor",
         variant: "destructive"
       });
