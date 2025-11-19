@@ -694,14 +694,12 @@ const parcelasFiltradas = useMemo(() => {
                 <div><span className="text-muted-foreground">Responsável:</span> {detalhesParcela.obra.responsavel || '-'}</div>
               </div>
             )}
-            {(detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes) && (
-              <div className="rounded-md border p-3">
-                <div className="font-semibold mb-1">Observações</div>
-                <div className="text-muted-foreground whitespace-pre-wrap">
-                  {detalhesParcela.observacoes || detalhesParcela.boletoObservacoes}
-                </div>
+            <div className="rounded-md border p-3">
+              <div className="font-semibold mb-1">Observações</div>
+              <div className="text-muted-foreground whitespace-pre-wrap">
+                {detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes || 'Nenhuma observação cadastrada'}
               </div>
-            )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>

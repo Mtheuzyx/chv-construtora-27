@@ -110,11 +110,9 @@ export const CompactTable = memo(({
                     <OptimizedStatusBadge status={parcela.status} size="sm" />
                   </TableCell>
                   <TableCell className="p-2">
-                    {(parcela.observacoes || parcela.boletoObservacoes) ? (
-                      <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onViewDetails(parcela)}>
-                        Observações
-                      </Button>
-                    ) : null}
+                    <Button size="sm" variant="outline" className="h-6 px-2 text-xs" onClick={() => onViewDetails(parcela)}>
+                      Observações
+                    </Button>
                   </TableCell>
                   <TableCell className="p-2">
                     <div className="flex gap-1">
