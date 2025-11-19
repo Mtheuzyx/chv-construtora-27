@@ -191,7 +191,24 @@ export const CompactTable = memo(({
                             {!dadosEdicao.dataPagamento && (
                               <div>
                                 <Label>Status</Label>
-                                <Select value={dadosEdicao.status} onValueChange={(value) => setDadosEdicao(prev => ({ ...prev, status: value as ParcelaStatus }))}>
+                                <Select 
+                                  value={dadosEdicao.status} 
+                                  onValueChange={(value) => {
+                                    const novoStatus = value as ParcelaStatus;
+                                    // Se marcar como PAGO ou PAGO_COM_ATRASO, preencher data de pagamento com hoje
+                                    if (novoStatus === 'PAGO' || novoStatus === 'PAGO_COM_ATRASO') {
+                                      const hoje = new Date().toISOString().split('T')[0];
+                                      setDadosEdicao(prev => ({ 
+                                        ...prev, 
+                                        status: novoStatus,
+                                        dataPagamento: hoje 
+                                      }));
+                                      console.log('✅ Status alterado para', novoStatus, '- Data de pagamento:', hoje);
+                                    } else {
+                                      setDadosEdicao(prev => ({ ...prev, status: novoStatus }));
+                                    }
+                                  }}
+                                >
                                   <SelectTrigger className="fast-transition">
                                     <SelectValue />
                                   </SelectTrigger>
