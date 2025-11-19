@@ -10,6 +10,7 @@ interface ParcelaContextType {
   updateParcelaVencimento: (parcelaId: string, novaData: string) => Promise<void>;
   updateParcelaValor: (parcelaId: string, novoValor: number) => Promise<void>;
   updateParcelaStatus: (parcelaId: string, novoStatus: ParcelaStatus) => Promise<void>;
+  updateParcelaObra: (parcelaId: string, obraId: string | null) => Promise<void>;
   deleteParcela: (parcelaId: string) => Promise<void>;
   getParcelasByFornecedor: (fornecedorId: string) => Parcela[];
   loadParcelas: () => Promise<void>;
@@ -252,6 +253,36 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     }
   }, [toast]);
 
+  const updateParcelaObra = useCallback(async (parcelaId: string, obraId: string | null) => {
+    try {
+      setParcelas(prev => {
+        const updated = prev.map(parcela => {
+          if (parcela.id === parcelaId) {
+            return {
+              ...parcela,
+              obraId: obraId
+            };
+          }
+          return parcela;
+        });
+        localStorage.setItem('parcelas', JSON.stringify(updated));
+        return updated;
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Obra da parcela atualizada",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar obra:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar obra",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
   const deleteParcela = useCallback(async (parcelaId: string) => {
     try {
       setParcelas(prev => {
@@ -328,6 +359,7 @@ useEffect(() => {
     updateParcelaVencimento,
     updateParcelaValor,
     updateParcelaStatus,
+    updateParcelaObra,
     deleteParcela,
     getParcelasByFornecedor,
     loadParcelas
@@ -339,6 +371,7 @@ useEffect(() => {
     updateParcelaVencimento,
     updateParcelaValor,
     updateParcelaStatus,
+    updateParcelaObra,
     deleteParcela,
     getParcelasByFornecedor,
     loadParcelas

@@ -177,6 +177,7 @@ export function ControlePagamentosOtimizadoV2() {
     updateParcelaVencimento,
     updateParcelaValor,
     updateParcelaStatus,
+    updateParcelaObra,
     deleteParcela
   } = useParcelas();
   const { fornecedores } = useFornecedores();
@@ -196,7 +197,8 @@ export function ControlePagamentosOtimizadoV2() {
     dataVencimento: '',
     dataPagamento: '',
     valor: 0,
-    status: '' as ParcelaStatus
+    status: '' as ParcelaStatus,
+    obraId: null as string | null
   });
   const [detalhesParcela, setDetalhesParcela] = useState<any | null>(null);
   // Removendo tableHeight e tableContainerRef, pois a tabela se expandirá com o conteúdo
@@ -348,7 +350,8 @@ const parcelasFiltradas = useMemo(() => {
         dataVencimento: parcela.dataVencimento,
         dataPagamento: parcela.dataPagamento || '',
         valor: parcela.valor,
-        status: parcela.status
+        status: parcela.status,
+        obraId: parcela.obraId || null
       });
     } catch (error) {
       console.error('Erro ao abrir edição:', error);
@@ -373,7 +376,7 @@ const parcelasFiltradas = useMemo(() => {
       ]);
       
       setEditandoParcela(null);
-      setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus });
+      setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus, obraId: null });
       
       toast({
         title: "Sucesso",
@@ -672,6 +675,7 @@ const parcelasFiltradas = useMemo(() => {
               setDadosEdicao={setDadosEdicao}
               salvarEdicao={salvarEdicao}
               onViewDetails={(p: any) => setDetalhesParcela(p)}
+              obras={obras}
             />
           )}
         </CardContent>
