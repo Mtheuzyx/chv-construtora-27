@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useParcelas } from '@/contexts/ParcelaContext';
 import { useFornecedores } from '@/contexts/FornecedorContext';
 import { useObras } from '@/contexts/ObraContext';
-import { Filter, Edit, Trash2, Info, TrendingUp, DollarSign, AlertCircle, CheckCircle, Flag } from 'lucide-react';
+import { Filter, Edit, Trash2, Info, TrendingUp, DollarSign, AlertCircle, CheckCircle, Flag, FileDown, FileSpreadsheet } from 'lucide-react';
 import { ParcelaStatus } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency } from '@/utils/formatters';
@@ -21,6 +21,9 @@ import { VirtualizedTable } from '@/components/VirtualizedTable';
 import { OptimizedStatusBadge } from '@/components/OptimizedStatusBadge';
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { CompactTable } from '@/components/CompactTable';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 // Memoized summary card component
 const SummaryCard = memo(({ 
@@ -399,6 +402,120 @@ const parcelasFiltradas = useMemo(() => {
     }
   }, [deleteParcela, toast]);
 
+  const exportarParaPDF = useCallback(() => {
+    try {
+      const doc = new jsPDF();
+      
+      // Título
+      doc.setFontSize(16);
+      doc.text('Relatório de Boletos - CHV Construtora', 14, 20);
+      
+      // Data de geração
+      doc.setFontSize(10);
+      doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
+      
+      // Preparar dados para a tabela
+      const dados = parcelasFiltradas.map(parcela => {
+        const fornecedor = fornecedores.find(f => f.id === parcela.fornecedorId);
+        const obra = obras.find(o => o.id === parcela.obraId);
+        
+        return [
+          fornecedor?.nome || 'N/A',
+          obra?.nome || 'Sem obra',
+          `${parcela.numeroParcela}/${parcela.totalParcelas}`,
+          formatCurrency(parcela.valor),
+          new Date(parcela.dataVencimento).toLocaleDateString('pt-BR'),
+          parcela.dataPagamento ? new Date(parcela.dataPagamento).toLocaleDateString('pt-BR') : '-',
+          parcela.status,
+          parcela.observacoes || '-'
+        ];
+      });
+      
+      // Criar tabela
+      autoTable(doc, {
+        head: [['Fornecedor', 'Obra', 'Parcela', 'Valor', 'Vencimento', 'Pagamento', 'Status', 'Obs.']],
+        body: dados,
+        startY: 35,
+        styles: { fontSize: 8, cellPadding: 2 },
+        headStyles: { fillColor: [99, 102, 241], textColor: 255 },
+        alternateRowStyles: { fillColor: [245, 247, 250] },
+      });
+      
+      // Salvar
+      doc.save(`relatorio-boletos-${new Date().toISOString().split('T')[0]}.pdf`);
+      
+      toast({
+        title: "PDF gerado com sucesso!",
+        description: `${parcelasFiltradas.length} registros exportados`,
+      });
+    } catch (error) {
+      console.error('Erro ao gerar PDF:', error);
+      toast({
+        title: "Erro ao gerar PDF",
+        description: "Ocorreu um erro ao gerar o relatório",
+        variant: "destructive"
+      });
+    }
+  }, [parcelasFiltradas, fornecedores, obras, toast]);
+
+  const exportarParaExcel = useCallback(() => {
+    try {
+      // Preparar dados para o Excel
+      const dados = parcelasFiltradas.map(parcela => {
+        const fornecedor = fornecedores.find(f => f.id === parcela.fornecedorId);
+        const obra = obras.find(o => o.id === parcela.obraId);
+        
+        return {
+          'Fornecedor': fornecedor?.nome || 'N/A',
+          'CPF/CNPJ': fornecedor?.cpfCnpj || 'N/A',
+          'Obra': obra?.nome || 'Sem obra',
+          'Código Obra': obra?.codigo || '-',
+          'Parcela': `${parcela.numeroParcela}/${parcela.totalParcelas}`,
+          'Valor': parcela.valor,
+          'Data Vencimento': new Date(parcela.dataVencimento).toLocaleDateString('pt-BR'),
+          'Data Pagamento': parcela.dataPagamento ? new Date(parcela.dataPagamento).toLocaleDateString('pt-BR') : '-',
+          'Status': parcela.status,
+          'Observações': parcela.observacoes || '-'
+        };
+      });
+      
+      // Criar workbook e worksheet
+      const ws = XLSX.utils.json_to_sheet(dados);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Boletos');
+      
+      // Ajustar largura das colunas
+      const colWidths = [
+        { wch: 30 }, // Fornecedor
+        { wch: 18 }, // CPF/CNPJ
+        { wch: 25 }, // Obra
+        { wch: 12 }, // Código Obra
+        { wch: 10 }, // Parcela
+        { wch: 12 }, // Valor
+        { wch: 15 }, // Data Vencimento
+        { wch: 15 }, // Data Pagamento
+        { wch: 18 }, // Status
+        { wch: 30 }, // Observações
+      ];
+      ws['!cols'] = colWidths;
+      
+      // Salvar
+      XLSX.writeFile(wb, `relatorio-boletos-${new Date().toISOString().split('T')[0]}.xlsx`);
+      
+      toast({
+        title: "Excel gerado com sucesso!",
+        description: `${parcelasFiltradas.length} registros exportados`,
+      });
+    } catch (error) {
+      console.error('Erro ao gerar Excel:', error);
+      toast({
+        title: "Erro ao gerar Excel",
+        description: "Ocorreu um erro ao gerar o relatório",
+        variant: "destructive"
+      });
+    }
+  }, [parcelasFiltradas, fornecedores, obras, toast]);
+
   // Tratamento de erro para evitar tela branca
   if (!parcelas && !loading) {
     return (
@@ -463,6 +580,26 @@ const parcelasFiltradas = useMemo(() => {
           icon={DollarSign}
           gradient="from-orange-600 to-amber-600"
         />
+      </div>
+
+      {/* Botões de Exportação */}
+      <div className="flex flex-wrap gap-3 justify-end animate-slide-up">
+        <Button 
+          onClick={exportarParaPDF}
+          variant="outline"
+          className="gap-2 hover:bg-primary hover:text-primary-foreground transition-all"
+        >
+          <FileDown className="h-4 w-4" />
+          Exportar PDF
+        </Button>
+        <Button 
+          onClick={exportarParaExcel}
+          variant="outline"
+          className="gap-2 hover:bg-green-600 hover:text-white transition-all"
+        >
+          <FileSpreadsheet className="h-4 w-4" />
+          Exportar Excel
+        </Button>
       </div>
 
       {/* Info sobre Parcelas */}
