@@ -371,13 +371,16 @@ const parcelasFiltradas = useMemo(() => {
     if (!editandoParcela) return;
     
     try {
-      await Promise.all([
+      const updates = [
         updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento),
         updateParcelaValor(editandoParcela, dadosEdicao.valor),
+        updateParcelaObra(editandoParcela, dadosEdicao.obraId),
         dadosEdicao.dataPagamento 
           ? updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento)
           : updateParcelaStatus(editandoParcela, dadosEdicao.status)
-      ]);
+      ];
+      
+      await Promise.all(updates);
       
       setEditandoParcela(null);
       setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus, obraId: null });
@@ -394,7 +397,7 @@ const parcelasFiltradas = useMemo(() => {
         variant: "destructive"
       });
     }
-  }, [editandoParcela, dadosEdicao, updateParcelaVencimento, updateParcelaValor, updateParcelaPagamento, updateParcelaStatus, toast]);
+  }, [editandoParcela, dadosEdicao, updateParcelaVencimento, updateParcelaValor, updateParcelaObra, updateParcelaPagamento, updateParcelaStatus, toast]);
 
   const handleDeleteParcela = useCallback(async (parcelaId: string, fornecedorNome: string, numeroParcela: number) => {
     if (window.confirm(`Tem certeza que deseja excluir a ${numeroParcela}ª parcela de ${fornecedorNome}?`)) {
@@ -749,11 +752,18 @@ const parcelasFiltradas = useMemo(() => {
                       onClick={async () => {
                         if (detalhesParcela?.id) {
                           await updateParcelaObservacoes(detalhesParcela.id, observacoesEditadas);
-                          setDetalhesParcela({
-                            ...detalhesParcela,
-                            observacoes: observacoesEditadas
-                          });
+                          
+                          // Atualizar o estado local com as novas observações
+                          const parcelaAtualizada = parcelas.find(p => p.id === detalhesParcela.id);
+                          if (parcelaAtualizada) {
+                            setDetalhesParcela({
+                              ...parcelaAtualizada,
+                              observacoes: observacoesEditadas
+                            });
+                          }
+                          
                           setEditandoObservacoes(false);
+                          setObservacoesEditadas('');
                         }
                       }}
                     >
