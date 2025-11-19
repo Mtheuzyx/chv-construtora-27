@@ -20,6 +20,7 @@ interface CompactTableProps {
   setDadosEdicao: (fn: (prev: any) => any) => void;
   salvarEdicao: () => void;
   onViewDetails: (parcela: any) => void;
+  obras: any[];
 }
 
 export const CompactTable = memo(({ 
@@ -30,7 +31,8 @@ export const CompactTable = memo(({
   dadosEdicao,
   setDadosEdicao,
   salvarEdicao,
-  onViewDetails
+  onViewDetails,
+  obras
 }: CompactTableProps) => {
   // Função segura para formatar data
   const formatDate = useCallback((dateString: string) => {
@@ -164,6 +166,26 @@ export const CompactTable = memo(({
                                 onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))}
                                 className="fast-transition"
                               />
+                            </div>
+
+                            <div>
+                              <Label>Obra</Label>
+                              <Select 
+                                value={dadosEdicao.obraId || 'SEM_OBRA'} 
+                                onValueChange={(value) => setDadosEdicao(prev => ({ ...prev, obraId: value === 'SEM_OBRA' ? null : value }))}
+                              >
+                                <SelectTrigger className="fast-transition">
+                                  <SelectValue placeholder="Selecione uma obra" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="SEM_OBRA">Sem obra vinculada</SelectItem>
+                                  {obras.map((obra: any) => (
+                                    <SelectItem key={obra.id} value={obra.id}>
+                                      {obra.codigo} - {obra.nome}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
                             </div>
 
                             {!dadosEdicao.dataPagamento && (
