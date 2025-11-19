@@ -16,6 +16,7 @@ const ObraForm = lazy(() => import('@/components/ObraForm').then(m => ({ default
 // BoletoList removido para manter layout original
 const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosOtimizadoV2').then(m => ({ default: m.ControlePagamentosOtimizadoV2 })));
 const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard }))); // Corrigido para importar o Dashboard correto
+const DataMigration = lazy(() => import('@/components/DataMigration').then(m => ({ default: m.DataMigration })));
 
 
 const Index = () => {
@@ -89,7 +90,7 @@ const Index = () => {
               {/* Removido flex flex-col flex-grow do Tabs para que não force o layout */}
               <Tabs defaultValue="fornecedores" className="w-full">
                 {/* Mobile-first tabs layout */}
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-6 sm:mb-8 h-auto bg-card border animate-fade-in">
+                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 mb-6 sm:mb-8 h-auto bg-card border animate-fade-in">
                   <TabsTrigger 
                     value="fornecedores" 
                     className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
@@ -128,6 +129,13 @@ const Index = () => {
                   >
                     <BarChart3 className="h-4 w-4" />
                     <span>Dashboard</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="migracao" 
+                    className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>Migração</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -168,6 +176,14 @@ const Index = () => {
                   <ErrorBoundary>
                     <Suspense fallback={<LoadingSkeleton type="cards" count={4} />}>
                       <Dashboard />
+                    </Suspense>
+                  </ErrorBoundary>
+                </TabsContent>
+
+                <TabsContent value="migracao" className="space-y-6 animate-fade-in">
+                  <ErrorBoundary>
+                    <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
+                      <DataMigration />
                     </Suspense>
                   </ErrorBoundary>
                 </TabsContent>
