@@ -8,6 +8,7 @@ import { Autocomplete, AutocompleteOption } from '@/components/ui/autocomplete';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
 import { useParcelas } from '@/contexts/ParcelaContext';
 import { useFornecedores } from '@/contexts/FornecedorContext';
 import { useObras } from '@/contexts/ObraContext';
@@ -178,6 +179,7 @@ export function ControlePagamentosOtimizadoV2() {
     updateParcelaValor,
     updateParcelaStatus,
     updateParcelaObra,
+    updateParcelaObservacoes,
     deleteParcela
   } = useParcelas();
   const { fornecedores } = useFornecedores();
@@ -201,6 +203,8 @@ export function ControlePagamentosOtimizadoV2() {
     obraId: null as string | null
   });
   const [detalhesParcela, setDetalhesParcela] = useState<any | null>(null);
+  const [editandoObservacoes, setEditandoObservacoes] = useState(false);
+  const [observacoesEditadas, setObservacoesEditadas] = useState('');
   // Removendo tableHeight e tableContainerRef, pois a tabela se expandirá com o conteúdo
   // const [tableHeight, setTableHeight] = useState(600);
   // const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -681,7 +685,13 @@ const parcelasFiltradas = useMemo(() => {
         </CardContent>
       </Card>
 
-      <Dialog open={!!detalhesParcela} onOpenChange={(open) => { if (!open) setDetalhesParcela(null); }}>
+      <Dialog open={!!detalhesParcela} onOpenChange={(open) => { 
+        if (!open) {
+          setDetalhesParcela(null);
+          setEditandoObservacoes(false);
+          setObservacoesEditadas('');
+        }
+      }}>
         <DialogContent className="sm:max-w-lg animate-scale-in">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
@@ -699,10 +709,63 @@ const parcelasFiltradas = useMemo(() => {
               </div>
             )}
             <div className="rounded-md border p-3">
-              <div className="font-semibold mb-1">Observações</div>
-              <div className="text-muted-foreground whitespace-pre-wrap">
-                {detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes || 'Nenhuma observação cadastrada'}
+              <div className="flex items-center justify-between mb-2">
+                <div className="font-semibold">Observações</div>
+                {!editandoObservacoes && (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    onClick={() => {
+                      setEditandoObservacoes(true);
+                      setObservacoesEditadas(detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes || '');
+                    }}
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Editar
+                  </Button>
+                )}
               </div>
+              {editandoObservacoes ? (
+                <div className="space-y-3">
+                  <Textarea 
+                    value={observacoesEditadas}
+                    onChange={(e) => setObservacoesEditadas(e.target.value)}
+                    placeholder="Digite as observações..."
+                    className="min-h-[100px]"
+                  />
+                  <div className="flex gap-2 justify-end">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => {
+                        setEditandoObservacoes(false);
+                        setObservacoesEditadas('');
+                      }}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={async () => {
+                        if (detalhesParcela?.id) {
+                          await updateParcelaObservacoes(detalhesParcela.id, observacoesEditadas);
+                          setDetalhesParcela({
+                            ...detalhesParcela,
+                            observacoes: observacoesEditadas
+                          });
+                          setEditandoObservacoes(false);
+                        }
+                      }}
+                    >
+                      Salvar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-muted-foreground whitespace-pre-wrap">
+                  {detalhesParcela?.observacoes || detalhesParcela?.boletoObservacoes || 'Nenhuma observação cadastrada'}
+                </div>
+              )}
             </div>
           </div>
         </DialogContent>
