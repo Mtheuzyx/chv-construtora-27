@@ -353,7 +353,7 @@ export function BoletoFormNovo() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {[1,2,3,4,5,6,7,8,9,10,11,12].map(num => (
+                  {Array.from({ length: 30 }, (_, i) => i + 1).map(num => (
                     <SelectItem key={num} value={num.toString()}>{num}x</SelectItem>
                   ))}
                 </SelectContent>
