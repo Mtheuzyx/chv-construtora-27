@@ -11,6 +11,7 @@ interface ParcelaContextType {
   updateParcelaValor: (parcelaId: string, novoValor: number) => Promise<void>;
   updateParcelaStatus: (parcelaId: string, novoStatus: ParcelaStatus) => Promise<void>;
   updateParcelaObra: (parcelaId: string, obraId: string | null) => Promise<void>;
+  updateParcelaObservacoes: (parcelaId: string, observacoes: string) => Promise<void>;
   deleteParcela: (parcelaId: string) => Promise<void>;
   getParcelasByFornecedor: (fornecedorId: string) => Parcela[];
   loadParcelas: () => Promise<void>;
@@ -283,6 +284,36 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     }
   }, [toast]);
 
+  const updateParcelaObservacoes = useCallback(async (parcelaId: string, observacoes: string) => {
+    try {
+      setParcelas(prev => {
+        const updated = prev.map(parcela => {
+          if (parcela.id === parcelaId) {
+            return {
+              ...parcela,
+              observacoes: observacoes
+            };
+          }
+          return parcela;
+        });
+        localStorage.setItem('parcelas', JSON.stringify(updated));
+        return updated;
+      });
+
+      toast({
+        title: "Sucesso",
+        description: "Observações atualizadas",
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar observações:', error);
+      toast({
+        title: "Erro",
+        description: "Erro inesperado ao atualizar observações",
+        variant: "destructive"
+      });
+    }
+  }, [toast]);
+
   const deleteParcela = useCallback(async (parcelaId: string) => {
     try {
       setParcelas(prev => {
@@ -360,6 +391,7 @@ useEffect(() => {
     updateParcelaValor,
     updateParcelaStatus,
     updateParcelaObra,
+    updateParcelaObservacoes,
     deleteParcela,
     getParcelasByFornecedor,
     loadParcelas
@@ -372,6 +404,7 @@ useEffect(() => {
     updateParcelaValor,
     updateParcelaStatus,
     updateParcelaObra,
+    updateParcelaObservacoes,
     deleteParcela,
     getParcelasByFornecedor,
     loadParcelas
