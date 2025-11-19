@@ -1,10 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { useObras } from '@/contexts/ObraContext';
-import { useParcelas } from '@/contexts/ParcelaContext';
 import { VirtualizedTable } from '@/components/VirtualizedTable';
 
 interface BoletoRow {
@@ -27,38 +27,26 @@ interface BoletoRow {
 
 export function BoletoList() {
   const { obras } = useObras();
-  const { parcelas, loading } = useParcelas();
+  const [boletos, setBoletos] = useState<BoletoRow[]>([]);
+  const [loading, setLoading] = useState(false);
   const [obraFilter, setObraFilter] = useState<string>('TODAS');
   const [search, setSearch] = useState('');
 
-  // Agrupar parcelas por boleto para criar a lista de boletos
-  const boletos = useMemo(() => {
-    const boletosMap = new Map<string, BoletoRow>();
-    
-    parcelas.forEach(parcela => {
-      if (!boletosMap.has(parcela.boletoId)) {
-        boletosMap.set(parcela.boletoId, {
-          id: parcela.boletoId,
-          fornecedor_id: parcela.fornecedorId,
-          forma_pagamento: 'Boleto',
-          valor_total: parcela.valor * parcela.totalParcelas,
-          quantidade_parcelas: parcela.totalParcelas,
-          vencimento_primeira: parcela.dataVencimento,
-          observacoes: parcela.boletoObservacoes,
-          obra_id: parcela.obraId || null,
-          obras: parcela.obra ? {
-            codigo: parcela.obra.codigo,
-            numero_unico: parcela.obra.codigo,
-            nome: parcela.obra.nome,
-            endereco: parcela.obra.endereco,
-            responsavel: undefined
-          } : null
-        });
-      }
-    });
-    
-    return Array.from(boletosMap.values());
-  }, [parcelas]);
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('boletos')
+        .select(`
+          id, fornecedor_id, forma_pagamento, valor_total, quantidade_parcelas, vencimento_primeira, observacoes, obra_id,
+          obras ( codigo, nome, endereco )
+        `)
+        .order('created_at', { ascending: false });
+      if (!error) setBoletos((data || []) as any);
+      setLoading(false);
+    };
+    load();
+  }, []);
 
   const filtered = useMemo(() => {
     return boletos.filter((b) => {
