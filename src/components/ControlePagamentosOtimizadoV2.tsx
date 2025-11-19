@@ -371,16 +371,36 @@ const parcelasFiltradas = useMemo(() => {
     if (!editandoParcela) return;
     
     try {
+      console.log('💾 Salvando edição:', { 
+        parcelaId: editandoParcela, 
+        dadosEdicao 
+      });
+
+      // Sempre atualizar vencimento, valor e obra
       const updates = [
         updateParcelaVencimento(editandoParcela, dadosEdicao.dataVencimento),
         updateParcelaValor(editandoParcela, dadosEdicao.valor),
-        updateParcelaObra(editandoParcela, dadosEdicao.obraId),
-        dadosEdicao.dataPagamento 
-          ? updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento)
-          : updateParcelaStatus(editandoParcela, dadosEdicao.status)
+        updateParcelaObra(editandoParcela, dadosEdicao.obraId)
       ];
       
+      // Se há data de pagamento, atualizar a data (que já define status como PAGO)
+      // Mas depois também atualizar o status se for diferente de PAGO
+      if (dadosEdicao.dataPagamento) {
+        updates.push(updateParcelaPagamento(editandoParcela, dadosEdicao.dataPagamento));
+        // Se o status selecionado não for PAGO (ex: PAGO_COM_ATRASO), atualizar o status
+        if (dadosEdicao.status && dadosEdicao.status !== 'PAGO') {
+          updates.push(updateParcelaStatus(editandoParcela, dadosEdicao.status));
+        }
+      } else {
+        // Se não há data de pagamento, apenas atualizar o status
+        if (dadosEdicao.status) {
+          updates.push(updateParcelaStatus(editandoParcela, dadosEdicao.status));
+        }
+      }
+      
       await Promise.all(updates);
+      
+      console.log('✅ Edição salva com sucesso');
       
       setEditandoParcela(null);
       setDadosEdicao({ dataVencimento: '', dataPagamento: '', valor: 0, status: '' as ParcelaStatus, obraId: null });
@@ -390,7 +410,7 @@ const parcelasFiltradas = useMemo(() => {
         description: "Parcela atualizada com sucesso",
       });
     } catch (error) {
-      console.error('Erro ao salvar edição:', error);
+      console.error('❌ Erro ao salvar edição:', error);
       toast({
         title: "Erro", 
         description: "Erro ao salvar alterações",
