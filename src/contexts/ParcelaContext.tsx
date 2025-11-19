@@ -95,7 +95,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       // Criar parcelas
       for (let i = 1; i <= boletoParcelas.quantidadeParcelas; i++) {
         const dataVencimento = new Date(boletoParcelas.dataVencimentoPrimeira);
-        dataVencimento.setMonth(dataVencimento.getMonth() + (i - 1));
+        dataVencimento.setDate(dataVencimento.getDate() + (30 * (i - 1)));
         
         const parcela: Parcela = {
           id: crypto.randomUUID(),
