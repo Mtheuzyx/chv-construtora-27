@@ -191,7 +191,7 @@ export default function BoletoForm() {
                   <FormItem>
                     <FormLabel>Quantidade de Parcelas</FormLabel>
                     <FormControl>
-                      <Input type="number" min="1" {...field} />
+                      <Input type="number" min="1" max="30" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
