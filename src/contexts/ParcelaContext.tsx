@@ -231,9 +231,12 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
 
   const updateParcelaStatus = useCallback(async (parcelaId: string, novoStatus: ParcelaStatus) => {
     try {
+      console.log('📝 Atualizando status:', { parcelaId, novoStatus });
+      
       setParcelas(prev => {
         const updated = prev.map(parcela => {
           if (parcela.id === parcelaId) {
+            console.log('✏️ Status anterior:', parcela.status, '→ Novo status:', novoStatus);
             return {
               ...parcela,
               status: novoStatus
@@ -242,10 +245,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
           return parcela;
         });
         localStorage.setItem('parcelas', JSON.stringify(updated));
+        console.log('💾 Status salvo no localStorage');
         return updated;
       });
+      
+      toast({
+        title: "Sucesso",
+        description: "Status atualizado com sucesso",
+      });
     } catch (error) {
-      console.error('Erro ao atualizar status:', error);
+      console.error('❌ Erro ao atualizar status:', error);
       toast({
         title: "Erro",
         description: "Erro inesperado ao atualizar status",
