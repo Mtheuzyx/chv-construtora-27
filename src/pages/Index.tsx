@@ -89,7 +89,7 @@ const Index = () => {
               {/* Removido flex flex-col flex-grow do Tabs para que não force o layout */}
               <Tabs defaultValue="fornecedores" className="w-full">
                 {/* Mobile-first tabs layout */}
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-6 mb-6 sm:mb-8 h-auto bg-card border animate-fade-in">
+                <TabsList className="inline-flex w-full justify-center flex-wrap mb-6 sm:mb-8 h-auto bg-card border animate-fade-in gap-1">
                   <TabsTrigger 
                     value="fornecedores" 
                     className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
