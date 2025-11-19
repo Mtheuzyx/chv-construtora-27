@@ -163,7 +163,23 @@ export const CompactTable = memo(({
                               <Input 
                                 type="date" 
                                 value={dadosEdicao.dataPagamento} 
-                                onChange={(e) => setDadosEdicao(prev => ({ ...prev, dataPagamento: e.target.value }))}
+                                onChange={(e) => {
+                                  const novaData = e.target.value;
+                                  console.log('📅 Data de pagamento alterada:', novaData);
+                                  
+                                  // Se preencheu a data de pagamento, definir status como PAGO
+                                  if (novaData) {
+                                    setDadosEdicao(prev => ({ 
+                                      ...prev, 
+                                      dataPagamento: novaData,
+                                      status: 'PAGO' as ParcelaStatus 
+                                    }));
+                                    console.log('✅ Status automaticamente alterado para PAGO');
+                                  } else {
+                                    // Se apagou a data, só atualiza a data (mantém status)
+                                    setDadosEdicao(prev => ({ ...prev, dataPagamento: novaData }));
+                                  }
+                                }}
                                 className="fast-transition"
                               />
                             </div>
