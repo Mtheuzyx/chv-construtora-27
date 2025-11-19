@@ -15,8 +15,7 @@ const BoletoFormNovo = lazy(() => import('@/components/BoletoFormNovo').then(m =
 const ObraForm = lazy(() => import('@/components/ObraForm').then(m => ({ default: m.ObraForm })));
 // BoletoList removido para manter layout original
 const ControlePagamentos = lazy(() => import('@/components/ControlePagamentosOtimizadoV2').then(m => ({ default: m.ControlePagamentosOtimizadoV2 })));
-const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard }))); // Corrigido para importar o Dashboard correto
-const DataMigration = lazy(() => import('@/components/DataMigration').then(m => ({ default: m.DataMigration })));
+const Dashboard = lazy(() => import('@/components/Dashboard').then(m => ({ default: m.Dashboard })));
 
 
 const Index = () => {
@@ -130,13 +129,6 @@ const Index = () => {
                     <BarChart3 className="h-4 w-4" />
                     <span>Dashboard</span>
                   </TabsTrigger>
-                  <TabsTrigger 
-                    value="migracao" 
-                    className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-2 sm:py-3 text-xs sm:text-sm transition-all duration-200 hover:scale-105"
-                  >
-                    <FileText className="h-4 w-4" />
-                    <span>Migração</span>
-                  </TabsTrigger>
                 </TabsList>
 
                 {/* Removido overflow-y-auto e flex-grow para que o conteúdo contribua para a rolagem principal */}
@@ -176,14 +168,6 @@ const Index = () => {
                   <ErrorBoundary>
                     <Suspense fallback={<LoadingSkeleton type="cards" count={4} />}>
                       <Dashboard />
-                    </Suspense>
-                  </ErrorBoundary>
-                </TabsContent>
-
-                <TabsContent value="migracao" className="space-y-6 animate-fade-in">
-                  <ErrorBoundary>
-                    <Suspense fallback={<LoadingSkeleton type="cards" count={2} />}>
-                      <DataMigration />
                     </Suspense>
                   </ErrorBoundary>
                 </TabsContent>
