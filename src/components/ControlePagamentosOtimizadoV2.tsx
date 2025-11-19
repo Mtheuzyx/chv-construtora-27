@@ -254,7 +254,12 @@ const parcelasFiltradas = useMemo(() => {
       return true;
     });
 
-    return filtradas;
+    // Ordenar por data de vencimento (mais próximas primeiro)
+    return filtradas.sort((a, b) => {
+      const dateA = new Date(a.dataVencimento + 'T00:00:00');
+      const dateB = new Date(b.dataVencimento + 'T00:00:00');
+      return dateA.getTime() - dateB.getTime();
+    });
   } catch (error) {
     console.error('Erro ao filtrar parcelas:', error);
     return [];
