@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { Parcela, ParcelaStatus, NovoBoletoParcelas } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ParcelaContextType {
   parcelas: Parcela[];
@@ -30,15 +31,12 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
     const vencimento = new Date(dataVencimento);
     vencimento.setHours(0, 0, 0, 0);
     
-    // Se há data de pagamento, usar apenas "PAGO" (não automático com atraso)
     if (dataPagamento) {
-      // Se o status do banco indica "Pago com Atraso", manter; caso contrário, "PAGO"
       return statusBanco === 'Pago com Atraso' ? 'PAGO_COM_ATRASO' : 'PAGO';
     }
     
     const diasAteVencimento = Math.ceil((vencimento.getTime() - hoje.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Status para "Vence hoje" (para boletos que venceram 1 dia antes)
     if (diasAteVencimento === -1) {
       return 'VENCE_HOJE';
     }
@@ -49,77 +47,99 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const loadParcelas = useCallback(async () => {
     try {
       setLoading(true);
-      const stored = localStorage.getItem('parcelas');
-      if (stored) {
-        const parcelasCarregadas = JSON.parse(stored);
-        // Recalcular status baseado na data atual
-        const parcelasAtualizadas = parcelasCarregadas.map((p: Parcela) => ({
-          ...p,
-          status: calculateParcelaStatus(p.dataVencimento, p.dataPagamento)
-        }));
-        setParcelas(parcelasAtualizadas);
-      }
+      
+      const { data: parcelasData, error: parcelasError } = await supabase
+        .from('parcelas')
+        .select(`
+          *,
+          boleto:boletos(
+            fornecedor_id,
+            obra_id,
+            observacoes
+          )
+        `)
+        .order('vencimento', { ascending: true });
+
+      if (parcelasError) throw parcelasError;
+
+      const { data: obrasData } = await supabase.from('obras').select('*');
+      const obrasMap = new Map((obrasData || []).map(o => [o.id, o]));
+
+      const parcelasMapeadas: Parcela[] = (parcelasData || []).map(p => {
+        const boleto = Array.isArray(p.boleto) ? p.boleto[0] : p.boleto;
+        const obraId = boleto?.obra_id;
+        const obraData = obraId ? obrasMap.get(obraId) : null;
+
+        return {
+          id: p.id,
+          boletoId: p.boleto_id,
+          fornecedorId: boleto?.fornecedor_id || '',
+          obraId: obraId || null,
+          numeroParcela: p.numero_parcela,
+          totalParcelas: 1,
+          valor: Number(p.valor),
+          dataVencimento: p.vencimento,
+          dataPagamento: p.pagamento || undefined,
+          status: calculateParcelaStatus(p.vencimento, p.pagamento || undefined, p.status),
+          obra: obraData ? {
+            codigo: obraData.codigo,
+            nome: obraData.nome,
+            endereco: obraData.endereco || undefined,
+            cidade: obraData.cidade || undefined,
+            estado: obraData.estado || undefined
+          } : undefined,
+          boletoObservacoes: boleto?.observacoes || undefined,
+          observacoes: undefined,
+          createdAt: p.created_at || new Date().toISOString()
+        };
+      });
+
+      setParcelas(parcelasMapeadas);
     } catch (error) {
       console.error('Erro ao carregar parcelas:', error);
+      toast({ title: 'Erro', description: 'Não foi possível carregar as parcelas.', variant: 'destructive' });
     } finally {
       setLoading(false);
     }
-  }, [calculateParcelaStatus]);
+  }, [calculateParcelaStatus, toast]);
 
   const criarBoletoComParcelas = useCallback(async (boletoParcelas: NovoBoletoParcelas) => {
     try {
       setLoading(true);
       
       const boletoId = crypto.randomUUID();
-      const novasParcelas: Parcela[] = [];
-      
-      // Buscar obra se necessário
-      let obra = undefined;
-      if (boletoParcelas.obraId) {
-        const obrasStored = localStorage.getItem('obras');
-        if (obrasStored) {
-          const obras = JSON.parse(obrasStored);
-          const obraEncontrada = obras.find((o: any) => o.id === boletoParcelas.obraId);
-          if (obraEncontrada) {
-            obra = {
-              codigo: obraEncontrada.codigo,
-              nome: obraEncontrada.nome,
-              endereco: obraEncontrada.endereco,
-              cidade: obraEncontrada.cidade,
-              estado: obraEncontrada.estado
-            };
-          }
-        }
-      }
-      
-      // Criar parcelas
+
+      const { error: boletoError } = await supabase.from('boletos').insert([{
+        id: boletoId,
+        fornecedor_id: boletoParcelas.fornecedorId,
+        obra_id: boletoParcelas.obraId || null,
+        valor_total: boletoParcelas.valorParcela * boletoParcelas.quantidadeParcelas,
+        quantidade_parcelas: boletoParcelas.quantidadeParcelas,
+        vencimento_primeira: boletoParcelas.dataVencimentoPrimeira,
+        forma_pagamento: 'Boleto',
+        observacoes: boletoParcelas.observacoes || null
+      }]);
+
+      if (boletoError) throw boletoError;
+
+      const parcelasParaInserir = [];
       for (let i = 1; i <= boletoParcelas.quantidadeParcelas; i++) {
         const dataVencimento = new Date(boletoParcelas.dataVencimentoPrimeira);
         dataVencimento.setDate(dataVencimento.getDate() + (30 * (i - 1)));
         
-        const parcela: Parcela = {
-          id: crypto.randomUUID(),
-          boletoId,
-          fornecedorId: boletoParcelas.fornecedorId,
-          obraId: boletoParcelas.obraId,
-          numeroParcela: i,
-          totalParcelas: boletoParcelas.quantidadeParcelas,
+        parcelasParaInserir.push({
+          boleto_id: boletoId,
+          numero_parcela: i,
           valor: boletoParcelas.valorParcela,
-          dataVencimento: dataVencimento.toISOString().split('T')[0],
-          status: calculateParcelaStatus(dataVencimento.toISOString().split('T')[0]),
-          obra,
-          boletoObservacoes: boletoParcelas.observacoes,
-          createdAt: new Date().toISOString()
-        };
-        
-        novasParcelas.push(parcela);
+          vencimento: dataVencimento.toISOString().split('T')[0],
+          status: calculateParcelaStatus(dataVencimento.toISOString().split('T')[0])
+        });
       }
-      
-      setParcelas(prev => {
-        const updated = [...novasParcelas, ...prev];
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+
+      const { error: parcelasError } = await supabase.from('parcelas').insert(parcelasParaInserir);
+      if (parcelasError) throw parcelasError;
+
+      await loadParcelas();
       
       toast({
         title: "Sucesso!",
@@ -129,31 +149,27 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao criar boleto com parcelas:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao criar boleto",
+        description: "Erro ao criar boleto",
         variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
-  }, [calculateParcelaStatus, toast]);
+  }, [calculateParcelaStatus, loadParcelas, toast]);
 
   const updateParcelaPagamento = useCallback(async (parcelaId: string, dataPagamento: string) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            return {
-              ...parcela,
-              dataPagamento,
-              status: 'PAGO' as ParcelaStatus
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ 
+          pagamento: dataPagamento,
+          status: 'pago'
+        })
+        .eq('id', parcelaId);
 
+      if (error) throw error;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
         description: "Data de pagamento atualizada",
@@ -162,29 +178,22 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao atualizar pagamento:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar pagamento",
+        description: "Erro ao atualizar pagamento",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const updateParcelaVencimento = useCallback(async (parcelaId: string, novaData: string) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            return {
-              ...parcela,
-              dataVencimento: novaData,
-              status: calculateParcelaStatus(novaData, parcela.dataPagamento)
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ vencimento: novaData })
+        .eq('id', parcelaId);
 
+      if (error) throw error;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
         description: "Data de vencimento atualizada",
@@ -193,28 +202,22 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao atualizar vencimento:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar vencimento",
+        description: "Erro ao atualizar vencimento",
         variant: "destructive"
       });
     }
-  }, [calculateParcelaStatus, toast]);
+  }, [loadParcelas, toast]);
 
   const updateParcelaValor = useCallback(async (parcelaId: string, novoValor: number) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            return {
-              ...parcela,
-              valor: novoValor
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ valor: novoValor })
+        .eq('id', parcelaId);
 
+      if (error) throw error;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
         description: "Valor da parcela atualizado",
@@ -223,31 +226,25 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao atualizar valor:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar valor",
+        description: "Erro ao atualizar valor",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const updateParcelaStatus = useCallback(async (parcelaId: string, novoStatus: ParcelaStatus) => {
     try {
       console.log('📝 Atualizando status:', { parcelaId, novoStatus });
       
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            console.log('✏️ Status anterior:', parcela.status, '→ Novo status:', novoStatus);
-            return {
-              ...parcela,
-              status: novoStatus
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        console.log('💾 Status salvo no localStorage');
-        return updated;
-      });
+      const { error } = await supabase
+        .from('parcelas')
+        .update({ status: novoStatus })
+        .eq('id', parcelaId);
+
+      if (error) throw error;
+
+      await loadParcelas();
+      console.log('✅ Status atualizado no banco');
       
       toast({
         title: "Sucesso",
@@ -257,28 +254,30 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('❌ Erro ao atualizar status:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar status",
+        description: "Erro ao atualizar status",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const updateParcelaObra = useCallback(async (parcelaId: string, obraId: string | null) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            return {
-              ...parcela,
-              obraId: obraId
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+      const { data: parcelaData, error: parcelaError } = await supabase
+        .from('parcelas')
+        .select('boleto_id')
+        .eq('id', parcelaId)
+        .single();
 
+      if (parcelaError) throw parcelaError;
+
+      const { error: boletoError } = await supabase
+        .from('boletos')
+        .update({ obra_id: obraId })
+        .eq('id', parcelaData.boleto_id);
+
+      if (boletoError) throw boletoError;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
         description: "Obra da parcela atualizada",
@@ -287,28 +286,30 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao atualizar obra:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar obra",
+        description: "Erro ao atualizar obra",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const updateParcelaObservacoes = useCallback(async (parcelaId: string, observacoes: string) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.map(parcela => {
-          if (parcela.id === parcelaId) {
-            return {
-              ...parcela,
-              observacoes: observacoes
-            };
-          }
-          return parcela;
-        });
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
+      const { data: parcelaData, error: parcelaError } = await supabase
+        .from('parcelas')
+        .select('boleto_id')
+        .eq('id', parcelaId)
+        .single();
 
+      if (parcelaError) throw parcelaError;
+
+      const { error: boletoError } = await supabase
+        .from('boletos')
+        .update({ observacoes })
+        .eq('id', parcelaData.boleto_id);
+
+      if (boletoError) throw boletoError;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
         description: "Observações atualizadas",
@@ -317,84 +318,59 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
       console.error('Erro ao atualizar observações:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao atualizar observações",
+        description: "Erro ao atualizar observações",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const deleteParcela = useCallback(async (parcelaId: string) => {
     try {
-      setParcelas(prev => {
-        const updated = prev.filter(parcela => parcela.id !== parcelaId);
-        localStorage.setItem('parcelas', JSON.stringify(updated));
-        return updated;
-      });
-      
+      const { error } = await supabase
+        .from('parcelas')
+        .delete()
+        .eq('id', parcelaId);
+
+      if (error) throw error;
+
+      await loadParcelas();
       toast({
         title: "Sucesso",
-        description: "Parcela deletada",
+        description: "Parcela excluída",
       });
     } catch (error) {
       console.error('Erro ao deletar parcela:', error);
       toast({
         title: "Erro",
-        description: "Erro inesperado ao deletar parcela",
+        description: "Erro ao excluir parcela",
         variant: "destructive"
       });
     }
-  }, [toast]);
+  }, [loadParcelas, toast]);
 
   const getParcelasByFornecedor = useCallback((fornecedorId: string): Parcela[] => {
     return parcelas.filter(p => p.fornecedorId === fornecedorId);
   }, [parcelas]);
 
-  // Carregar parcelas ao inicializar
   useEffect(() => {
     loadParcelas();
   }, [loadParcelas]);
 
-  // Atualização automática de status baseada na data atual
-  const updateAllParcelasStatus = useCallback(() => {
-    setParcelas(prev => prev.map(parcela => {
-      // Só atualiza se não há data de pagamento (não foi pago)
-      if (!parcela.dataPagamento) {
-        const novoStatus = calculateParcelaStatus(parcela.dataVencimento);
-        if (novoStatus !== parcela.status) {
-          return { ...parcela, status: novoStatus };
-        }
-      }
-      return parcela;
-    }));
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setParcelas(prev => prev.map(p => ({
+        ...p,
+        status: calculateParcelaStatus(p.dataVencimento, p.dataPagamento)
+      })));
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, [calculateParcelaStatus]);
 
-// Executa atualização automática diária, agendada para a meia-noite
-useEffect(() => {
-  // Atualiza status imediatamente ao carregar
-  updateAllParcelasStatus();
-
-  let timeoutId: number;
-  const scheduleNextRun = () => {
-    const now = new Date();
-    const next = new Date(now);
-    next.setHours(24, 0, 0, 0); // próxima meia-noite
-    const msUntilNext = next.getTime() - now.getTime();
-
-    timeoutId = window.setTimeout(() => {
-      updateAllParcelasStatus();
-      scheduleNextRun(); // reagenda para o próximo dia
-    }, msUntilNext);
-  };
-
-  scheduleNextRun();
-
-  return () => clearTimeout(timeoutId);
-}, [updateAllParcelasStatus]);
-
-  const contextValue = useMemo(() => ({ 
-    parcelas, 
+  const value = useMemo(() => ({
+    parcelas,
     loading,
-    criarBoletoComParcelas, 
+    criarBoletoComParcelas,
     updateParcelaPagamento,
     updateParcelaVencimento,
     updateParcelaValor,
@@ -405,9 +381,9 @@ useEffect(() => {
     getParcelasByFornecedor,
     loadParcelas
   }), [
-    parcelas, 
+    parcelas,
     loading,
-    criarBoletoComParcelas, 
+    criarBoletoComParcelas,
     updateParcelaPagamento,
     updateParcelaVencimento,
     updateParcelaValor,
@@ -419,17 +395,11 @@ useEffect(() => {
     loadParcelas
   ]);
 
-  return (
-    <ParcelaContext.Provider value={contextValue}>
-      {children}
-    </ParcelaContext.Provider>
-  );
+  return <ParcelaContext.Provider value={value}>{children}</ParcelaContext.Provider>;
 }
 
 export function useParcelas() {
-  const context = useContext(ParcelaContext);
-  if (context === undefined) {
-    throw new Error('useParcelas must be used within a ParcelaProvider');
-  }
-  return context;
+  const ctx = useContext(ParcelaContext);
+  if (!ctx) throw new Error('useParcelas must be used within a ParcelaProvider');
+  return ctx;
 }
