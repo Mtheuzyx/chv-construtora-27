@@ -33,15 +33,24 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   const loadObras = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('🔄 Carregando obras do banco...');
+      
       const { data, error } = await supabase
         .from('obras')
         .select('*')
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      console.log('📊 Obras recebidas:', { data, error, count: data?.length });
+      
+      if (error) {
+        console.error('❌ Erro ao carregar obras:', error);
+        throw error;
+      }
+      
+      console.log('✅ Obras carregadas:', data?.length, 'itens');
       setObras(data || []);
     } catch (error) {
-      console.error('Erro ao carregar obras:', error);
+      console.error('❌ Erro crítico ao carregar obras:', error);
       toast({ title: 'Erro', description: 'Não foi possível carregar as obras.', variant: 'destructive' });
       setObras([]);
     } finally {
@@ -54,6 +63,8 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setLoading(true);
+      console.log('🔵 Tentando adicionar obra:', obra);
+      
       const { data, error } = await supabase
         .from('obras')
         .insert([{
@@ -67,9 +78,19 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('📊 Resposta do Supabase:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro ao inserir obra:', error);
+        throw error;
+      }
       
-      setObras(prev => [data, ...prev]);
+      console.log('✅ Obra inserida com sucesso:', data);
+      setObras(prev => {
+        const updated = [data, ...prev];
+        console.log('📋 Lista atualizada de obras:', updated.length, 'itens');
+        return updated;
+      });
       toast({ title: 'Obra cadastrada', description: 'A obra foi cadastrada com sucesso.' });
     } catch (error) {
       console.error('Erro ao cadastrar obra:', error);

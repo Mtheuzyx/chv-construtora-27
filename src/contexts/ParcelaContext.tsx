@@ -106,6 +106,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const criarBoletoComParcelas = useCallback(async (boletoParcelas: NovoBoletoParcelas) => {
     try {
       setLoading(true);
+      console.log('🔵 Criando boleto com parcelas:', boletoParcelas);
       
       const boletoId = crypto.randomUUID();
 
@@ -120,7 +121,12 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         observacoes: boletoParcelas.observacoes || null
       }]);
 
-      if (boletoError) throw boletoError;
+      console.log('📊 Resultado inserção boleto:', { boletoError });
+
+      if (boletoError) {
+        console.error('❌ Erro ao inserir boleto:', boletoError);
+        throw boletoError;
+      }
 
       const parcelasParaInserir = [];
       for (let i = 1; i <= boletoParcelas.quantidadeParcelas; i++) {
