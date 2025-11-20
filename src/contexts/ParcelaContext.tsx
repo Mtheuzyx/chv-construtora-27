@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useMemo, useEffect } from 'react';
 import { Parcela, ParcelaStatus, NovoBoletoParcelas } from '@/types/parcela';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 interface ParcelaContextType {
   parcelas: Parcela[];

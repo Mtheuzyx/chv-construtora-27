@@ -3,7 +3,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { Fornecedor, FornecedorFormData } from '@/types/fornecedor';
 import { cleanDocument } from '@/utils/formatters';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase';
 
 interface FornecedorContextType {
   fornecedores: Fornecedor[];
