@@ -1,11 +1,12 @@
 
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import { Suspense, lazy, useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { FornecedorProvider } from '@/contexts/FornecedorContext';
 import { ParcelaProvider } from '@/contexts/ParcelaContext';
 import { ObraProvider } from '@/contexts/ObraContext';
 import { Users, FileText, CreditCard, BarChart3, Building2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { DataMigrationHelper } from '@/components/DataMigrationHelper';
 
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -86,6 +87,8 @@ const Index = () => {
                 </p>
               </div>
 
+              <DataMigrationHelper />
+              
               {/* Removido flex flex-col flex-grow do Tabs para que não force o layout */}
               <Tabs defaultValue="fornecedores" className="w-full">
                 {/* Mobile-first tabs layout */}

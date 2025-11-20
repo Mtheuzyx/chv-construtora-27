@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Obra {
   id: string;
@@ -32,42 +33,43 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   const loadObras = useCallback(async () => {
     try {
       setLoading(true);
-      const stored = localStorage.getItem('obras');
-      if (stored) {
-        setObras(JSON.parse(stored));
-      } else {
-        setObras([]);
-      }
+      const { data, error } = await supabase
+        .from('obras')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      setObras(data || []);
     } catch (error) {
-      console.warn('Erro ao carregar obras:', error);
+      console.error('Erro ao carregar obras:', error);
+      toast({ title: 'Erro', description: 'Não foi possível carregar as obras.', variant: 'destructive' });
       setObras([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   const addObra = useCallback(async (
     obra: Omit<Obra, 'id' | 'codigo' | 'created_at' | 'updated_at'>
   ) => {
     try {
       setLoading(true);
-      const novaObra: Obra = {
-        id: crypto.randomUUID(),
-        codigo: (obra as any).codigo || `OBRA-${Date.now()}`,
-        nome: obra.nome,
-        endereco: obra.endereco,
-        cidade: (obra as any).cidade,
-        estado: (obra as any).estado,
-        ativa: (obra as any).ativa ?? true,
-        created_at: new Date().toISOString()
-      };
+      const { data, error } = await supabase
+        .from('obras')
+        .insert([{
+          codigo: (obra as any).codigo || `OBRA-${Date.now()}`,
+          nome: obra.nome,
+          endereco: obra.endereco,
+          cidade: (obra as any).cidade,
+          estado: (obra as any).estado,
+          ativa: (obra as any).ativa ?? true
+        }])
+        .select()
+        .single();
 
-      setObras(prev => {
-        const updated = [novaObra, ...prev];
-        localStorage.setItem('obras', JSON.stringify(updated));
-        return updated;
-      });
-
+      if (error) throw error;
+      
+      setObras(prev => [data, ...prev]);
       toast({ title: 'Obra cadastrada', description: 'A obra foi cadastrada com sucesso.' });
     } catch (error) {
       console.error('Erro ao cadastrar obra:', error);
@@ -83,15 +85,16 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   ) => {
     try {
       setLoading(true);
-      setObras(prev => {
-        const updated = prev.map(obra => 
-          obra.id === id 
-            ? { ...obra, ...changes, updated_at: new Date().toISOString() }
-            : obra
-        );
-        localStorage.setItem('obras', JSON.stringify(updated));
-        return updated;
-      });
+      const { data, error } = await supabase
+        .from('obras')
+        .update(changes)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      setObras(prev => prev.map(obra => obra.id === id ? data : obra));
       toast({ title: 'Obra atualizada', description: 'As informações da obra foram salvas.' });
     } catch (error) {
       console.error('Erro ao atualizar obra:', error);
@@ -104,11 +107,14 @@ export function ObraProvider({ children }: { children: React.ReactNode }) {
   const deleteObra = useCallback(async (id: string) => {
     try {
       setLoading(true);
-      setObras(prev => {
-        const updated = prev.filter(obra => obra.id !== id);
-        localStorage.setItem('obras', JSON.stringify(updated));
-        return updated;
-      });
+      const { error } = await supabase
+        .from('obras')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setObras(prev => prev.filter(obra => obra.id !== id));
       toast({ title: 'Obra excluída', description: 'A obra foi removida com sucesso.' });
     } catch (error) {
       console.error('Erro ao excluir obra:', error);

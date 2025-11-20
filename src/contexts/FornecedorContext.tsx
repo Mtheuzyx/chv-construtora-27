@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useCallback, useMemo, useEf
 import { Fornecedor, FornecedorFormData } from '@/types/fornecedor';
 import { cleanDocument } from '@/utils/formatters';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FornecedorContextType {
   fornecedores: Fornecedor[];
@@ -18,14 +19,28 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
   const [fornecedores, setFornecedores] = useState<Fornecedor[]>([]);
   const { toast } = useToast();
 
-  // Carregar fornecedores do localStorage na inicialização
   useEffect(() => {
-    const loadFornecedores = () => {
+    const loadFornecedores = async () => {
       try {
-        const stored = localStorage.getItem('fornecedores');
-        if (stored) {
-          setFornecedores(JSON.parse(stored));
-        }
+        const { data, error } = await supabase
+          .from('fornecedores')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const mapped = (data || []).map(f => ({
+          id: f.id,
+          nome: f.nome,
+          cpfCnpj: f.cpf_cnpj,
+          email: f.email || '',
+          telefone: f.telefone || '',
+          endereco: f.endereco || '',
+          tipo: (f.tipo as 'Cliente' | 'Fornecedor') || 'Fornecedor',
+          createdAt: f.created_at || new Date().toISOString()
+        }));
+        
+        setFornecedores(mapped);
       } catch (err) {
         console.error('Erro ao carregar fornecedores:', err);
       }
@@ -36,22 +51,33 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const addFornecedor = useCallback(async (fornecedorData: FornecedorFormData) => {
     try {
+      const { data, error } = await supabase
+        .from('fornecedores')
+        .insert([{
+          nome: fornecedorData.nome,
+          cpf_cnpj: fornecedorData.cpfCnpj,
+          email: fornecedorData.email || null,
+          telefone: fornecedorData.telefone || null,
+          endereco: fornecedorData.endereco || null,
+          tipo: fornecedorData.tipo || 'Fornecedor'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+      
       const novoFornecedor: Fornecedor = {
-        id: crypto.randomUUID(),
-        nome: fornecedorData.nome,
-        cpfCnpj: fornecedorData.cpfCnpj,
-        email: fornecedorData.email || '',
-        telefone: fornecedorData.telefone || '',
-        endereco: fornecedorData.endereco || '',
-        tipo: fornecedorData.tipo || 'Fornecedor',
-        createdAt: new Date().toISOString()
+        id: data.id,
+        nome: data.nome,
+        cpfCnpj: data.cpf_cnpj,
+        email: data.email || '',
+        telefone: data.telefone || '',
+        endereco: data.endereco || '',
+        tipo: (data.tipo as 'Cliente' | 'Fornecedor') || 'Fornecedor',
+        createdAt: data.created_at || new Date().toISOString()
       };
       
-      setFornecedores(prev => {
-        const updated = [novoFornecedor, ...prev];
-        localStorage.setItem('fornecedores', JSON.stringify(updated));
-        return updated;
-      });
+      setFornecedores(prev => [novoFornecedor, ...prev]);
       
       toast({
         title: "Sucesso",
@@ -69,15 +95,34 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const editFornecedor = useCallback(async (id: string, fornecedorData: FornecedorFormData) => {
     try {
-      setFornecedores(prev => {
-        const updated = prev.map(fornecedor => 
-          fornecedor.id === id 
-            ? { ...fornecedor, ...fornecedorData }
-            : fornecedor
-        );
-        localStorage.setItem('fornecedores', JSON.stringify(updated));
-        return updated;
-      });
+      const { data, error } = await supabase
+        .from('fornecedores')
+        .update({
+          nome: fornecedorData.nome,
+          cpf_cnpj: fornecedorData.cpfCnpj,
+          email: fornecedorData.email || null,
+          telefone: fornecedorData.telefone || null,
+          endereco: fornecedorData.endereco || null,
+          tipo: fornecedorData.tipo || 'Fornecedor'
+        })
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      const fornecedorAtualizado: Fornecedor = {
+        id: data.id,
+        nome: data.nome,
+        cpfCnpj: data.cpf_cnpj,
+        email: data.email || '',
+        telefone: data.telefone || '',
+        endereco: data.endereco || '',
+        tipo: (data.tipo as 'Cliente' | 'Fornecedor') || 'Fornecedor',
+        createdAt: data.created_at || new Date().toISOString()
+      };
+      
+      setFornecedores(prev => prev.map(f => f.id === id ? fornecedorAtualizado : f));
       
       toast({
         title: "Sucesso",
@@ -95,11 +140,14 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const deleteFornecedor = useCallback(async (id: string) => {
     try {
-      setFornecedores(prev => {
-        const updated = prev.filter(fornecedor => fornecedor.id !== id);
-        localStorage.setItem('fornecedores', JSON.stringify(updated));
-        return updated;
-      });
+      const { error } = await supabase
+        .from('fornecedores')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+      
+      setFornecedores(prev => prev.filter(fornecedor => fornecedor.id !== id));
       
       toast({
         title: "Sucesso",
