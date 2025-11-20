@@ -22,12 +22,19 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const loadFornecedores = async () => {
       try {
+        console.log('🔄 Carregando fornecedores do banco...');
+        
         const { data, error } = await supabase
           .from('fornecedores')
           .select('*')
           .order('created_at', { ascending: false });
         
-        if (error) throw error;
+        console.log('📊 Dados recebidos do Supabase:', { data, error, count: data?.length });
+        
+        if (error) {
+          console.error('❌ Erro ao carregar fornecedores:', error);
+          throw error;
+        }
         
         const mapped = (data || []).map(f => ({
           id: f.id,
@@ -40,9 +47,10 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
           createdAt: f.created_at || new Date().toISOString()
         }));
         
+        console.log('✅ Fornecedores carregados:', mapped.length, 'itens');
         setFornecedores(mapped);
       } catch (err) {
-        console.error('Erro ao carregar fornecedores:', err);
+        console.error('❌ Erro crítico ao carregar fornecedores:', err);
       }
     };
 
@@ -51,6 +59,8 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
 
   const addFornecedor = useCallback(async (fornecedorData: FornecedorFormData) => {
     try {
+      console.log('🔵 Tentando adicionar fornecedor:', fornecedorData);
+      
       const { data, error } = await supabase
         .from('fornecedores')
         .insert([{
@@ -64,8 +74,15 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
         .select()
         .single();
 
-      if (error) throw error;
+      console.log('📊 Resposta do Supabase:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro ao inserir fornecedor:', error);
+        throw error;
+      }
       
+      console.log('✅ Fornecedor inserido com sucesso:', data);
+
       const novoFornecedor: Fornecedor = {
         id: data.id,
         nome: data.nome,
@@ -77,7 +94,11 @@ export function FornecedorProvider({ children }: { children: React.ReactNode }) 
         createdAt: data.created_at || new Date().toISOString()
       };
       
-      setFornecedores(prev => [novoFornecedor, ...prev]);
+      setFornecedores(prev => {
+        const updated = [novoFornecedor, ...prev];
+        console.log('📋 Lista atualizada de fornecedores:', updated.length, 'itens');
+        return updated;
+      });
       
       toast({
         title: "Sucesso",
