@@ -34,7 +34,10 @@ export function FornecedorForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    console.log('📝 Formulário submetido com dados:', formData);
+    
     if (!formData.nome || !formData.cpfCnpj) {
+      console.warn('⚠️ Campos obrigatórios vazios');
       toast({
         title: "Campos obrigatórios",
         description: "Nome e CPF/CNPJ são obrigatórios",
@@ -43,21 +46,22 @@ export function FornecedorForm() {
       return;
     }
 
-    await addFornecedor(formData);
-    
-    setFormData({
-      nome: '',
-      cpfCnpj: '',
-      email: '',
-      telefone: '',
-      endereco: '',
-      tipo: 'Fornecedor'
-    });
-
-    toast({
-      title: "Sucesso!",
-      description: "Fornecedor cadastrado com sucesso",
-    });
+    console.log('🚀 Chamando addFornecedor...');
+    try {
+      await addFornecedor(formData);
+      
+      console.log('✅ Fornecedor adicionado, limpando formulário');
+      setFormData({
+        nome: '',
+        cpfCnpj: '',
+        email: '',
+        telefone: '',
+        endereco: '',
+        tipo: 'Fornecedor'
+      });
+    } catch (error) {
+      console.error('❌ Erro no handleSubmit:', error);
+    }
   };
 
   const handleDelete = async (fornecedorId: string, nome: string) => {
