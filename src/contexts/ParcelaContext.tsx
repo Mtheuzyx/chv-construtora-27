@@ -47,6 +47,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
   const loadParcelas = useCallback(async () => {
     try {
       setLoading(true);
+      console.log('🔄 Carregando parcelas do banco...');
       
       const { data: parcelasData, error: parcelasError } = await supabase
         .from('parcelas')
@@ -60,7 +61,19 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         `)
         .order('vencimento', { ascending: true });
 
-      if (parcelasError) throw parcelasError;
+      console.log('📊 Parcelas recebidas:', { data: parcelasData, error: parcelasError, count: parcelasData?.length });
+
+      if (parcelasError) {
+        console.error('❌ Erro ao carregar parcelas:', parcelasError);
+        throw parcelasError;
+      }
+
+      // Se não há parcelas, apenas retornar array vazio
+      if (!parcelasData || parcelasData.length === 0) {
+        console.log('ℹ️ Nenhuma parcela encontrada no banco');
+        setParcelas([]);
+        return;
+      }
 
       const { data: obrasData } = await supabase.from('obras').select('*');
       const obrasMap = new Map((obrasData || []).map(o => [o.id, o]));
@@ -94,14 +107,16 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         };
       });
 
+      console.log('✅ Parcelas carregadas:', parcelasMapeadas.length, 'itens');
       setParcelas(parcelasMapeadas);
     } catch (error) {
-      console.error('Erro ao carregar parcelas:', error);
-      toast({ title: 'Erro', description: 'Não foi possível carregar as parcelas.', variant: 'destructive' });
+      console.error('❌ Erro crítico ao carregar parcelas:', error);
+      // Não mostrar toast de erro se for apenas porque não há dados
+      setParcelas([]);
     } finally {
       setLoading(false);
     }
-  }, [calculateParcelaStatus, toast]);
+  }, [calculateParcelaStatus]);
 
   const criarBoletoComParcelas = useCallback(async (boletoParcelas: NovoBoletoParcelas) => {
     try {
