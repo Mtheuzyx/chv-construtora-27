@@ -53,7 +53,7 @@ export function ParcelaProvider({ children }: { children: React.ReactNode }) {
         .from('parcelas')
         .select(`
           *,
-          boleto:boletos(
+          boleto:boletos!fk_parcelas_boleto(
             fornecedor_id,
             obra_id,
             observacoes
