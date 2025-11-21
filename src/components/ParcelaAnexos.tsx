@@ -31,10 +31,14 @@ export function ParcelaAnexos({ parcelaId, fornecedorNome, numeroParcela }: Parc
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    loadAnexos();
+  }, [parcelaId]);
+
+  useEffect(() => {
     if (open) {
       loadAnexos();
     }
-  }, [open, parcelaId]);
+  }, [open]);
 
   const loadAnexos = async () => {
     try {
