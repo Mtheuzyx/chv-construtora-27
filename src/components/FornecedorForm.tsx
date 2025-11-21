@@ -11,19 +11,23 @@ import { FornecedorFormData } from '@/types/fornecedor';
 import { useToast } from '@/hooks/use-toast';
 import { EditFornecedorForm } from '@/components/EditFornecedorForm';
 import { Search, ChevronDown, Edit, Trash2 } from 'lucide-react';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 export function FornecedorForm() {
   const { addFornecedor, fornecedores, searchFornecedor, deleteFornecedor } = useFornecedores();
   const { toast } = useToast();
   
-  const [formData, setFormData] = useState<FornecedorFormData>({
-    nome: '',
-    cpfCnpj: '',
-    email: '',
-    telefone: '',
-    endereco: '',
-    tipo: 'Fornecedor'
-  });
+  const [formData, setFormData, clearSavedData] = useFormPersistence<FornecedorFormData>(
+    'fornecedor-form-draft',
+    {
+      nome: '',
+      cpfCnpj: '',
+      email: '',
+      telefone: '',
+      endereco: '',
+      tipo: 'Fornecedor'
+    }
+  );
 
   const [searchTerm, setSearchTerm] = useState('');
   const [isListOpen, setIsListOpen] = useState(false);
@@ -45,14 +49,7 @@ export function FornecedorForm() {
 
     await addFornecedor(formData);
     
-    setFormData({
-      nome: '',
-      cpfCnpj: '',
-      email: '',
-      telefone: '',
-      endereco: '',
-      tipo: 'Fornecedor'
-    });
+    clearSavedData();
 
     toast({
       title: "Sucesso!",

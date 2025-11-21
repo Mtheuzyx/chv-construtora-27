@@ -7,23 +7,25 @@ import { Button } from '@/components/ui/button';
 import { useObras } from '@/contexts/ObraContext';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 export function ObraForm() {
   const { addObra, obras, updateObra, deleteObra, loading } = useObras();
-  const [form, setForm] = useState({
-    nome: '',
-    codigo: '',
-    endereco: '',
-    cidade: '',
-    estado: '',
-  });
+  const [form, setForm, clearSavedData] = useFormPersistence(
+    'obra-form-draft',
+    {
+      nome: '',
+      codigo: '',
+      endereco: '',
+      cidade: '',
+      estado: '',
+    }
+  );
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await addObra(form as any);
-    setForm({
-      nome: '', codigo: '', endereco: '', cidade: '', estado: ''
-    });
+    clearSavedData();
   };
 
   const [editing, setEditing] = useState<any | null>(null);
