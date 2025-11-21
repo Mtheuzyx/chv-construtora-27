@@ -3,7 +3,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/utils/formatters';
-import { Pencil, Trash2, Eye } from 'lucide-react';
+import { Pencil, Trash2, Eye, Paperclip } from 'lucide-react';
+import { ParcelaAnexos } from '@/components/ParcelaAnexos';
 
 interface MobileTableProps {
   data: any[];
@@ -101,6 +102,13 @@ export const MobileTable: React.FC<MobileTableProps> = ({
                       <Pencil className="h-3 w-3 mr-1" />
                       Editar
                     </Button>
+                  )}
+                  {type === 'parcelas' && (
+                    <ParcelaAnexos 
+                      parcelaId={item.id}
+                      fornecedorNome={getFornecedorNome ? getFornecedorNome(item.fornecedorId) : 'N/A'}
+                      numeroParcela={item.numeroParcela}
+                    />
                   )}
                   {onDelete && (
                     <Button

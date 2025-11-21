@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Edit, Trash2 } from 'lucide-react';
 import { formatCurrency } from '@/utils/formatters';
 import { OptimizedStatusBadge } from '@/components/OptimizedStatusBadge';
+import { ParcelaAnexos } from '@/components/ParcelaAnexos';
 import { ParcelaStatus } from '@/types/parcela';
 
 interface CompactTableProps {
@@ -247,6 +248,12 @@ export const CompactTable = memo(({
                           </div>
                         </DialogContent>
                       </Dialog>
+                      
+                      <ParcelaAnexos 
+                        parcelaId={parcela.id}
+                        fornecedorNome={getFornecedorNomeSafe(parcela.fornecedorId)}
+                        numeroParcela={parcela.numeroParcela}
+                      />
                       
                       <Button 
                         size="sm" 
