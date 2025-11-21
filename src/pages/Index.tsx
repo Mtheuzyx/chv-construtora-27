@@ -6,7 +6,6 @@ import { ParcelaProvider } from '@/contexts/ParcelaContext';
 import { ObraProvider } from '@/contexts/ObraContext';
 import { Users, FileText, CreditCard, BarChart3, Building2, ArrowUp, ArrowDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { DataMigrationHelper } from '@/components/DataMigrationHelper';
 
 import { LoadingSkeleton } from '@/components/LoadingSkeleton';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
@@ -82,14 +81,12 @@ const Index = () => {
                     CHV CONSTRUTORA
                   </h1>
                 </div>
-                <p className="text-sm sm:text-base text-muted-foreground">
-                  Sistema de Controle de Boletos e Pagamentos
-                </p>
-              </div>
-
-              <DataMigrationHelper />
-              
-              {/* Removido flex flex-col flex-grow do Tabs para que não force o layout */}
+              <p className="text-sm sm:text-base text-muted-foreground">
+                Sistema de Controle de Boletos e Pagamentos
+              </p>
+            </div>
+            
+            {/* Removido flex flex-col flex-grow do Tabs para que não force o layout */}
               <Tabs defaultValue="fornecedores" className="w-full">
                 {/* Mobile-first tabs layout */}
                 <TabsList className="inline-flex w-full justify-center flex-wrap mb-6 sm:mb-8 h-auto bg-card border animate-fade-in gap-1">
