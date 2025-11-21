@@ -12,6 +12,7 @@ import { useObras } from '@/contexts/ObraContext';
 import { useToast } from '@/hooks/use-toast';
 import { Search, X } from 'lucide-react';
 import { formatDocument, formatPhone, cleanDocument } from '@/utils/formatters';
+import { useFormPersistence } from '@/hooks/useFormPersistence';
 
 export function BoletoFormNovo() {
   const { fornecedores } = useFornecedores();
@@ -19,21 +20,45 @@ export function BoletoFormNovo() {
   const { obras } = useObras();
   const { toast } = useToast();
   
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFornecedor, setSelectedFornecedor] = useState<string>('');
-  const [selectedObra, setSelectedObra] = useState<string>('');
+  const [boletoForm, setBoletoForm, clearSavedBoletoData] = useFormPersistence(
+    'boleto-form-draft',
+    {
+      searchTerm: '',
+      selectedFornecedor: '',
+      selectedObra: '',
+      formaPagamento: '',
+      valorParcela: '',
+      quantidadeParcelas: '1',
+      dataVencimentoPrimeira: '',
+      observacoes: ''
+    }
+  );
+  
+  const searchTerm = boletoForm.searchTerm;
+  const selectedFornecedor = boletoForm.selectedFornecedor;
+  const selectedObra = boletoForm.selectedObra;
+  const formData = {
+    formaPagamento: boletoForm.formaPagamento,
+    valorParcela: boletoForm.valorParcela,
+    quantidadeParcelas: boletoForm.quantidadeParcelas,
+    dataVencimentoPrimeira: boletoForm.dataVencimentoPrimeira,
+    observacoes: boletoForm.observacoes
+  };
+  
+  const setSearchTerm = (value: string) => setBoletoForm(prev => ({ ...prev, searchTerm: value }));
+  const setSelectedFornecedor = (value: string) => setBoletoForm(prev => ({ ...prev, selectedFornecedor: value }));
+  const setSelectedObra = (value: string) => setBoletoForm(prev => ({ ...prev, selectedObra: value }));
+  const setFormData = (updater: any) => {
+    setBoletoForm(prev => {
+      const newFormData = typeof updater === 'function' ? updater(formData) : updater;
+      return { ...prev, ...newFormData };
+    });
+  };
+  
   const [showDropdown, setShowDropdown] = useState(false);
   const [isInputFocused, setIsInputFocused] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  const [formData, setFormData] = useState({
-    formaPagamento: '',
-    valorParcela: '',
-    quantidadeParcelas: '1',
-    dataVencimentoPrimeira: '',
-    observacoes: ''
-  });
 
   // Função otimizada para buscar fornecedores com filtro dinâmico usando useMemo
   const buscarFornecedores = useCallback((termo: string) => {
@@ -176,18 +201,9 @@ export function BoletoFormNovo() {
     });
     
     // Reset do formulário
-    setSelectedFornecedor('');
-    setSelectedObra('');
-    setSearchTerm('');
+    clearSavedBoletoData();
     setShowDropdown(false);
     setIsInputFocused(false);
-    setFormData({
-      formaPagamento: '',
-      valorParcela: '',
-      quantidadeParcelas: '1',
-      dataVencimentoPrimeira: '',
-      observacoes: ''
-    });
 
     toast({
       title: "Sucesso!",
