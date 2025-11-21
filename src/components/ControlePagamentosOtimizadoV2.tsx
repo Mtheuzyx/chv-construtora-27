@@ -449,6 +449,17 @@ const parcelasFiltradas = useMemo(() => {
       doc.setFontSize(10);
       doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 28);
       
+      // Adicionar resumo de valores
+      doc.setFontSize(11);
+      doc.setFont(undefined, 'bold');
+      doc.text('Resumo Financeiro:', 14, 38);
+      doc.setFont(undefined, 'normal');
+      doc.setFontSize(9);
+      doc.text(`Total Previsto: ${formatCurrency(resumoValores.valorTotalPrevisto)}`, 14, 44);
+      doc.text(`Já Pago: ${formatCurrency(resumoValores.valorJaPago)}`, 14, 49);
+      doc.text(`Em Atraso: ${formatCurrency(resumoValores.valorEmAtraso)}`, 14, 54);
+      doc.text(`Vence Hoje: ${formatCurrency(resumoValores.valorVenceHoje)}`, 14, 59);
+      
       // Preparar dados para a tabela
       const dados = parcelasFiltradas.map(parcela => {
         const fornecedor = fornecedores.find(f => f.id === parcela.fornecedorId);
@@ -470,7 +481,7 @@ const parcelasFiltradas = useMemo(() => {
       autoTable(doc, {
         head: [['Fornecedor', 'Obra', 'Parcela', 'Valor', 'Vencimento', 'Pagamento', 'Status', 'Obs.']],
         body: dados,
-        startY: 35,
+        startY: 65,
         styles: { fontSize: 8, cellPadding: 2 },
         headStyles: { fillColor: [99, 102, 241], textColor: 255 },
         alternateRowStyles: { fillColor: [245, 247, 250] },
@@ -491,11 +502,22 @@ const parcelasFiltradas = useMemo(() => {
         variant: "destructive"
       });
     }
-  }, [parcelasFiltradas, fornecedores, obras, toast]);
+  }, [parcelasFiltradas, fornecedores, obras, resumoValores, toast]);
 
   const exportarParaExcel = useCallback(() => {
     try {
-      // Preparar dados para o Excel
+      // Criar array com resumo financeiro
+      const resumo = [
+        ['RESUMO FINANCEIRO'],
+        ['Total Previsto', resumoValores.valorTotalPrevisto],
+        ['Já Pago', resumoValores.valorJaPago],
+        ['Em Atraso', resumoValores.valorEmAtraso],
+        ['Vence Hoje', resumoValores.valorVenceHoje],
+        [], // Linha em branco
+        [], // Linha em branco
+      ];
+      
+      // Preparar dados das parcelas
       const dados = parcelasFiltradas.map(parcela => {
         const fornecedor = fornecedores.find(f => f.id === parcela.fornecedorId);
         const obra = obras.find(o => o.id === parcela.obraId);
@@ -514,10 +536,14 @@ const parcelasFiltradas = useMemo(() => {
         };
       });
       
-      // Criar workbook e worksheet
-      const ws = XLSX.utils.json_to_sheet(dados);
+      // Criar workbook
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Boletos');
+      
+      // Criar worksheet começando com o resumo
+      const ws = XLSX.utils.aoa_to_sheet(resumo);
+      
+      // Adicionar os dados das parcelas abaixo do resumo
+      XLSX.utils.sheet_add_json(ws, dados, { origin: -1, skipHeader: false });
       
       // Ajustar largura das colunas
       const colWidths = [
@@ -534,6 +560,9 @@ const parcelasFiltradas = useMemo(() => {
       ];
       ws['!cols'] = colWidths;
       
+      // Adicionar worksheet ao workbook
+      XLSX.utils.book_append_sheet(wb, ws, 'Boletos');
+      
       // Salvar
       XLSX.writeFile(wb, `relatorio-boletos-${new Date().toISOString().split('T')[0]}.xlsx`);
       
@@ -549,7 +578,7 @@ const parcelasFiltradas = useMemo(() => {
         variant: "destructive"
       });
     }
-  }, [parcelasFiltradas, fornecedores, obras, toast]);
+  }, [parcelasFiltradas, fornecedores, obras, resumoValores, toast]);
 
   // Tratamento de erro para evitar tela branca
   if (!parcelas && !loading) {
